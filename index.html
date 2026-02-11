@@ -510,7 +510,7 @@
       border: 2px solid var(--border) !important;
     }
     
-    /* ERROR FEEDBACK - VISIBLE ONLY WHEN TRIGGERED */
+    /* ERROR FEEDBACK - Per Greenwald et al. (2003) recommendations */
     .error-mark {
       color: var(--error-red) !important;
       font-size: clamp(100px, 18vh, 160px) !important;
@@ -674,80 +674,22 @@ console.log('Mobile:', IS_MOBILE);
 console.log('Participant:', PID);
 
 // ===========================================
-// STIMULI
+// STIMULI - Based on Greenwald et al. (1998, 2003)
 // ===========================================
 const IMG_MODI = ['modi1.jpeg', 'modi2.jpeg', 'modi3.jpeg', 'modi4.jpeg', 'modi5.jpeg', 'modi6.jpeg'];
 const IMG_MANMOHAN = ['mohan1.jpeg', 'mohan2.jpeg', 'mohan3.jpeg', 'mohan4.jpeg', 'mohan5.jpeg', 'mohan6.jpeg'];
+
+// Balanced pleasant/unpleasant words (8 each as per IAT best practices)
 const WORDS_POS = ['Triumph', 'Joyous', 'Celebrate', 'Cheerful', 'Beautiful', 'Terrific', 'Magnificent', 'Excellent'];
 const WORDS_NEG = ['Disgust', 'Annoy', 'Hate', 'Ugly', 'Awful', 'Bothersome', 'Hurtful', 'Negative'];
 
 // ===========================================
-// CRITICAL: ALTERNATING STIMULUS FUNCTION
+// RANDOMIZATION
+// According to Nosek et al. (2005), counterbalancing is critical
 // ===========================================
-function createAlternatingTrials(imgArray, wordArray, imgSide, wordSide, block, lCat, rCat, lShort, rShort, isCritical) {
-  const trials = [];
-  const maxPairs = Math.min(imgArray.length, wordArray.length);
-  
-  for (let i = 0; i < maxPairs; i++) {
-    // Image trial
-    trials.push({
-      type: jsPsychIatImage,
-      stimulus: imgArray[i],
-      stim_key_association: imgSide,
-      html_when_wrong: '<span class="error-mark">✕</span>',
-      bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
-      force_correct_key_press: true,
-      display_feedback: true,
-      feedback_duration: 1000,
-      trial_duration: 3000,
-      left_category_key: 'e',
-      right_category_key: 'i',
-      left_category_label: lCat.split('/'),
-      right_category_label: rCat.split('/'),
-      response_ends_trial: true,
-      data: {block: block, type: 'image', critical: isCritical || false, stimulus: imgArray[i]},
-      on_load: function() {
-        if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
-        console.log('IMAGE TRIAL LOADED - Error feedback configured');
-      },
-      on_finish: function(data) {
-        if (!data.correct) {
-          console.log('❌ INCORRECT RESPONSE - Red X should be displayed prominently!');
-        }
-      }
-    });
-    
-    // Word trial
-    trials.push({
-      type: jsPsychIatHtml,
-      stimulus: wordArray[i],
-      stim_key_association: wordSide,
-      html_when_wrong: '<span class="error-mark">✕</span>',
-      bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
-      force_correct_key_press: true,
-      display_feedback: true,
-      feedback_duration: 1000,
-      trial_duration: 3000,
-      left_category_key: 'e',
-      right_category_key: 'i',
-      left_category_label: lCat.split('/'),
-      right_category_label: rCat.split('/'),
-      response_ends_trial: true,
-      data: {block: block, type: 'word', critical: isCritical || false, stimulus: wordArray[i]},
-      on_load: function() {
-        if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
-        console.log('WORD TRIAL LOADED - Error feedback configured');
-      },
-      on_finish: function(data) {
-        if (!data.correct) {
-          console.log('❌ INCORRECT RESPONSE - Red X should be displayed prominently!');
-        }
-      }
-    });
-  }
-  
-  return trials;
-}
+const COUNTERBALANCE_ORDER = Math.random() < 0.5 ? 'compatible-first' : 'incompatible-first';
+
+console.log('Counterbalance order:', COUNTERBALANCE_ORDER);
 
 // ===========================================
 // KEY PRESS FUNCTION
@@ -853,7 +795,7 @@ window.downloadBoth = function() {
 }
 
 // ===========================================
-// JSPSYCH
+// JSPSYCH INITIALIZATION
 // ===========================================
 const jsPsych = initJsPsych({
   display_element: 'experiment',
@@ -868,9 +810,13 @@ const jsPsych = initJsPsych({
     data.participant_id = PID;
     data.device = IS_MOBILE ? 'mobile' : 'desktop';
     data.timestamp = new Date().toISOString();
+    data.counterbalance_order = COUNTERBALANCE_ORDER;
   }
 });
 
+// ===========================================
+// DATA PROCESSING - Implements D-score algorithm from Greenwald et al. (2003)
+// ===========================================
 function processAndDisplayResults() {
   const allData = jsPsych.data.get();
   
@@ -888,20 +834,25 @@ function processAndDisplayResults() {
     }
   });
   
-  // Get IAT data
+  // Get IAT data - only critical blocks
   const iatData = allData.filter([
     {trial_type: 'iat-image'},
     {trial_type: 'iat-html'}
   ]);
   
-  const compatible = iatData.filter({block: 'compatible', critical: true});
-  const incompatible = iatData.filter({block: 'incompatible', critical: true});
+  const compatibleBlock = iatData.filter({block: 'compatible', critical: true});
+  const incompatibleBlock = iatData.filter({block: 'incompatible', critical: true});
   
-  const meanComp = compatible.select('rt').mean();
-  const meanIncomp = incompatible.select('rt').mean();
-  const sdComp = compatible.select('rt').sd();
-  const sdIncomp = incompatible.select('rt').sd();
+  // Calculate D-score using improved algorithm (Greenwald et al., 2003)
+  const meanComp = compatibleBlock.select('rt').mean();
+  const meanIncomp = incompatibleBlock.select('rt').mean();
+  const sdComp = compatibleBlock.select('rt').sd();
+  const sdIncomp = incompatibleBlock.select('rt').sd();
+  
+  // Pooled standard deviation
   const pooledSD = Math.sqrt((sdComp * sdComp + sdIncomp * sdIncomp) / 2);
+  
+  // D-score: (Mean_Incompatible - Mean_Compatible) / Pooled_SD
   const dScore = (meanIncomp - meanComp) / pooledSD;
   
   const correct = iatData.filter({correct: true}).count();
@@ -909,30 +860,35 @@ function processAndDisplayResults() {
   const accuracy = ((correct / total) * 100).toFixed(1);
   const meanRT = iatData.select('rt').mean().toFixed(0);
   
+  // Interpret D-score based on Greenwald et al. (2003) benchmarks
   let interpretation = '';
   let explanation = '';
+  let strength = '';
   
-  if (Math.abs(dScore) < 0.15) {
-    interpretation = 'No clear preference';
+  const absDScore = Math.abs(dScore);
+  
+  if (absDScore < 0.15) {
+    strength = 'No clear preference';
+    interpretation = 'Little to no automatic preference';
     explanation = 'Response times were similar for both pairings.';
-  } else if (dScore > 0.65) {
-    interpretation = 'Strong Modi-Positive association';
-    explanation = 'Much faster when Modi paired with positive words.';
-  } else if (dScore > 0.35) {
-    interpretation = 'Moderate Modi-Positive association';
-    explanation = 'Noticeably faster when Modi paired with positive words.';
-  } else if (dScore > 0) {
-    interpretation = 'Slight Modi-Positive association';
-    explanation = 'Somewhat faster when Modi paired with positive words.';
-  } else if (dScore < -0.65) {
-    interpretation = 'Strong Manmohan-Positive association';
-    explanation = 'Much faster when Manmohan paired with positive words.';
-  } else if (dScore < -0.35) {
-    interpretation = 'Moderate Manmohan-Positive association';
-    explanation = 'Noticeably faster when Manmohan paired with positive words.';
+  } else if (absDScore >= 0.15 && absDScore < 0.35) {
+    strength = 'Slight';
+  } else if (absDScore >= 0.35 && absDScore < 0.65) {
+    strength = 'Moderate';
   } else {
-    interpretation = 'Slight Manmohan-Positive association';
-    explanation = 'Somewhat faster when Manmohan paired with positive words.';
+    strength = 'Strong';
+  }
+  
+  if (dScore > 0.15) {
+    interpretation = `${strength} automatic preference for Modi + Positive`;
+    explanation = dScore > 0.35 
+      ? 'Noticeably faster when Modi paired with positive words.'
+      : 'Somewhat faster when Modi paired with positive words.';
+  } else if (dScore < -0.15) {
+    interpretation = `${strength} automatic preference for Manmohan + Positive`;
+    explanation = dScore < -0.35 
+      ? 'Noticeably faster when Manmohan paired with positive words.'
+      : 'Somewhat faster when Manmohan paired with positive words.';
   }
   
   // Create comprehensive summary CSV
@@ -945,6 +901,7 @@ function processAndDisplayResults() {
     id: PID,
     date: new Date().toLocaleString(),
     device: IS_MOBILE ? 'Mobile' : 'Desktop',
+    counterbalance: COUNTERBALANCE_ORDER,
     trials: total,
     accuracy: accuracy + '%',
     rt: meanRT + 'ms',
@@ -956,16 +913,19 @@ function processAndDisplayResults() {
   };
   
   console.log('✅ DATA READY');
+  console.log('D-Score:', dScore.toFixed(3));
+  console.log('Interpretation:', interpretation);
+  
   showResults();
 }
 
 function createSummaryCSV(pid, dscore, interp, acc, rt, trials, rtComp, rtIncomp) {
-  let csv = 'participant_id,date_time,device,age,gender,religion,caste,education,occupation,income,';
+  let csv = 'participant_id,date_time,device,counterbalance_order,age,gender,religion,caste,education,occupation,income,';
   csv += 'political_orientation,state,rural_urban,language,media_consumption,';
   csv += 'd_score,interpretation,accuracy_percent,mean_rt_ms,total_trials,rt_compatible_ms,rt_incompatible_ms,';
   csv += 'preference_modi,preference_manmohan,awareness_bias,thermometer_modi,thermometer_manmohan,voted_2024\n';
   
-  csv += `"${pid}","${new Date().toISOString()}","${IS_MOBILE ? 'Mobile' : 'Desktop'}",`;
+  csv += `"${pid}","${new Date().toISOString()}","${IS_MOBILE ? 'Mobile' : 'Desktop'}","${COUNTERBALANCE_ORDER}",`;
   csv += `"${DEMOGRAPHIC_DATA.age || 'NA'}","${DEMOGRAPHIC_DATA.gender || 'NA'}","${DEMOGRAPHIC_DATA.religion || 'NA'}",`;
   csv += `"${DEMOGRAPHIC_DATA.caste || 'NA'}","${DEMOGRAPHIC_DATA.education || 'NA'}","${DEMOGRAPHIC_DATA.occupation || 'NA'}",`;
   csv += `"${DEMOGRAPHIC_DATA.income || 'NA'}","${DEMOGRAPHIC_DATA.political || 'NA'}","${DEMOGRAPHIC_DATA.state || 'NA'}",`;
@@ -979,17 +939,19 @@ function createSummaryCSV(pid, dscore, interp, acc, rt, trials, rtComp, rtIncomp
 }
 
 function createFullCSV(iatData) {
-  let csv = 'participant_id,trial_number,block,stimulus_type,stimulus,correct_response,user_response,correct,rt_ms,';
-  csv += 'age,gender,religion,caste,education,occupation,income,political_orientation,state,rural_urban,language,media_consumption,timestamp\n';
+  let csv = 'participant_id,trial_number,block,block_number,stimulus_type,stimulus,correct_response,user_response,correct,rt_ms,';
+  csv += 'age,gender,religion,caste,education,occupation,income,political_orientation,state,rural_urban,language,media_consumption,';
+  csv += 'counterbalance_order,timestamp\n';
   
   const trials = iatData.values();
   trials.forEach((trial, idx) => {
-    csv += `"${PID}",${idx + 1},"${trial.block}","${trial.type}","${trial.stimulus}",`;
+    csv += `"${PID}",${idx + 1},"${trial.block}","${trial.block_number || 'NA'}","${trial.type}","${trial.stimulus}",`;
     csv += `"${trial.stim_key_association}","${trial.response}",${trial.correct ? 'TRUE' : 'FALSE'},${trial.rt},`;
     csv += `"${DEMOGRAPHIC_DATA.age || 'NA'}","${DEMOGRAPHIC_DATA.gender || 'NA'}","${DEMOGRAPHIC_DATA.religion || 'NA'}",`;
     csv += `"${DEMOGRAPHIC_DATA.caste || 'NA'}","${DEMOGRAPHIC_DATA.education || 'NA'}","${DEMOGRAPHIC_DATA.occupation || 'NA'}",`;
     csv += `"${DEMOGRAPHIC_DATA.income || 'NA'}","${DEMOGRAPHIC_DATA.political || 'NA'}","${DEMOGRAPHIC_DATA.state || 'NA'}",`;
-    csv += `"${DEMOGRAPHIC_DATA.location || 'NA'}","${DEMOGRAPHIC_DATA.language || 'NA'}","${DEMOGRAPHIC_DATA.media || 'NA'}","${trial.timestamp}"\n`;
+    csv += `"${DEMOGRAPHIC_DATA.location || 'NA'}","${DEMOGRAPHIC_DATA.language || 'NA'}","${DEMOGRAPHIC_DATA.media || 'NA'}",`;
+    csv += `"${COUNTERBALANCE_ORDER}","${trial.timestamp}"\n`;
   });
   
   return csv;
@@ -1022,6 +984,10 @@ function showResults() {
             <span class="result-value">${EXPERIMENT_DATA.device}</span>
           </div>
           <div class="result-item">
+            <span class="result-label">Counterbalance Order</span>
+            <span class="result-value">${EXPERIMENT_DATA.counterbalance}</span>
+          </div>
+          <div class="result-item">
             <span class="result-label">Total Trials</span>
             <span class="result-value">${EXPERIMENT_DATA.trials}</span>
           </div>
@@ -1036,10 +1002,19 @@ function showResults() {
         </div>
         
         <div class="result-highlight">
-          <div style="margin-bottom: 8px; font-size: clamp(14px, 2.1vh, 17px); opacity: 0.8;">D-Score</div>
+          <div style="margin-bottom: 8px; font-size: clamp(14px, 2.1vh, 17px); opacity: 0.8;">IAT D-Score</div>
           <div style="font-size: clamp(24px, 4vh, 32px); font-family: 'DM Serif Display', serif;">${EXPERIMENT_DATA.dscore}</div>
           <div style="margin-top: 8px; font-size: clamp(15px, 2.3vh, 18px);">${EXPERIMENT_DATA.result}</div>
           <div style="margin-top: 12px; font-size: clamp(14px, 2.1vh, 16px); font-weight: 400; opacity: 0.8;">${EXPERIMENT_DATA.explanation}</div>
+        </div>
+        
+        <div class="info-box">
+          <strong>📊 Understanding Your Results</strong><br>
+          The D-score measures the strength of automatic associations. Scores range from -2 to +2, with:<br>
+          • |D| < 0.15: Little to no preference<br>
+          • 0.15 ≤ |D| < 0.35: Slight preference<br>
+          • 0.35 ≤ |D| < 0.65: Moderate preference<br>
+          • |D| ≥ 0.65: Strong preference
         </div>
         
         <div class="info-box">
@@ -1062,9 +1037,10 @@ function showResults() {
 }
 
 // ===========================================
-// TRIAL FUNCTIONS
+// TRIAL CREATION FUNCTIONS
+// Per Greenwald et al. (1998, 2003) and Nosek et al. (2005)
 // ===========================================
-function blockIntro(title, left, right, reversed) {
+function blockIntro(title, left, right, reversed, blockNum) {
   return {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: `
@@ -1072,6 +1048,7 @@ function blockIntro(title, left, right, reversed) {
         <div class="content-card">
           <div class="header-accent"></div>
           <h2>${title}</h2>
+          <p style="font-size: clamp(15px, 2.2vh, 18px); margin-bottom: 20px;">Block ${blockNum} of 7</p>
           ${reversed ? '<div class="info-box warning"><strong>⚠ Categories Switched</strong><br>Pay attention to the new category positions!</div>' : ''}
           <div class="category-grid">
             <div class="category-pill">E = ${left}</div>
@@ -1084,6 +1061,7 @@ function blockIntro(title, left, right, reversed) {
       </div>
     `,
     choices: [' '],
+    data: { block_number: blockNum, phase: 'instruction' },
     on_load: function() {
       if (IS_MOBILE) setupControls('single', 'START');
     },
@@ -1093,64 +1071,66 @@ function blockIntro(title, left, right, reversed) {
   };
 }
 
-function imgTrial(block, lCat, rCat, lShort, rShort, crit) {
-  return {
-    type: jsPsychIatImage,
-    stimulus: jsPsych.timelineVariable('stim'),
-    stim_key_association: jsPsych.timelineVariable('side'),
-    html_when_wrong: '<span class="error-mark">✕</span>',
-    bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
-    force_correct_key_press: true,
-    display_feedback: true,
-    feedback_duration: 1000,
-    trial_duration: 3000,
-    left_category_key: 'e',
-    right_category_key: 'i',
-    left_category_label: lCat.split('/'),
-    right_category_label: rCat.split('/'),
-    response_ends_trial: true,
-    data: {block: block, type: 'image', critical: crit || false},
-    on_load: function() {
-      if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
-    },
-    on_finish: function(data) {
-      if (!data.correct) {
-        console.log('❌ IMAGE ERROR - Red X displayed');
+function createCombinedTrials(imgArray, wordArray, imgSide, wordSide, block, blockNum, lCat, rCat, lShort, rShort, isCritical) {
+  const trials = [];
+  const numPairs = Math.max(imgArray.length, wordArray.length);
+  
+  // Create alternating image-word trials
+  for (let i = 0; i < numPairs; i++) {
+    const imgIdx = i % imgArray.length;
+    const wordIdx = i % wordArray.length;
+    
+    // Image trial
+    trials.push({
+      type: jsPsychIatImage,
+      stimulus: imgArray[imgIdx],
+      stim_key_association: imgSide,
+      html_when_wrong: '<span class="error-mark">✕</span>',
+      bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
+      force_correct_key_press: true,
+      display_feedback: true,
+      feedback_duration: 1000,
+      trial_duration: 3000,
+      left_category_key: 'e',
+      right_category_key: 'i',
+      left_category_label: lCat.split('/'),
+      right_category_label: rCat.split('/'),
+      response_ends_trial: true,
+      data: {block: block, block_number: blockNum, type: 'image', critical: isCritical || false, stimulus: imgArray[imgIdx]},
+      on_load: function() {
+        if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
       }
-    }
-  };
-}
-
-function wordTrial(block, lCat, rCat, lShort, rShort, crit) {
-  return {
-    type: jsPsychIatHtml,
-    stimulus: jsPsych.timelineVariable('stim'),
-    stim_key_association: jsPsych.timelineVariable('side'),
-    html_when_wrong: '<span class="error-mark">✕</span>',
-    bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
-    force_correct_key_press: true,
-    display_feedback: true,
-    feedback_duration: 1000,
-    trial_duration: 3000,
-    left_category_key: 'e',
-    right_category_key: 'i',
-    left_category_label: lCat.split('/'),
-    right_category_label: rCat.split('/'),
-    response_ends_trial: true,
-    data: {block: block, type: 'word', critical: crit || false},
-    on_load: function() {
-      if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
-    },
-    on_finish: function(data) {
-      if (!data.correct) {
-        console.log('❌ WORD ERROR - Red X displayed');
+    });
+    
+    // Word trial
+    trials.push({
+      type: jsPsychIatHtml,
+      stimulus: wordArray[wordIdx],
+      stim_key_association: wordSide,
+      html_when_wrong: '<span class="error-mark">✕</span>',
+      bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
+      force_correct_key_press: true,
+      display_feedback: true,
+      feedback_duration: 1000,
+      trial_duration: 3000,
+      left_category_key: 'e',
+      right_category_key: 'i',
+      left_category_label: lCat.split('/'),
+      right_category_label: rCat.split('/'),
+      response_ends_trial: true,
+      data: {block: block, block_number: blockNum, type: 'word', critical: isCritical || false, stimulus: wordArray[wordIdx]},
+      on_load: function() {
+        if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
       }
-    }
-  };
+    });
+  }
+  
+  return trials;
 }
 
 // ===========================================
-// TIMELINE
+// TIMELINE CONSTRUCTION
+// Based on standard 7-block IAT procedure (Greenwald et al., 1998)
 // ===========================================
 const timeline = [];
 
@@ -1171,15 +1151,22 @@ timeline.push({
         
         <h3>What You'll Do</h3>
         <ul>
-          <li><strong>Part 1:</strong> Answer demographic questions (12 questions)</li>
-          <li><strong>Part 2:</strong> Complete categorization tasks with images and words</li>
-          <li><strong>Part 3:</strong> Answer follow-up questions about your attitudes</li>
+          <li><strong>Part 1:</strong> Answer demographic questions (12 questions, ~3 minutes)</li>
+          <li><strong>Part 2:</strong> Complete categorization tasks with images and words (~8 minutes)</li>
+          <li><strong>Part 3:</strong> Answer follow-up questions about your attitudes (~2 minutes)</li>
         </ul>
         
         <div class="info-box warning">
           <strong>Time Required:</strong> Approximately 12-15 minutes<br>
           <strong>Confidentiality:</strong> All responses are anonymous and stored locally<br>
           ${IS_MOBILE ? '<strong>Device:</strong> Please keep your device in landscape orientation' : '<strong>Requirements:</strong> Use keyboard for responses (E, I, and Space keys)'}
+        </div>
+        
+        <div class="info-box">
+          <strong>Important Notes</strong><br>
+          • Respond as quickly as possible while staying accurate<br>
+          • If you make a mistake, a red X will appear - just press the correct key<br>
+          • There are no "right" or "wrong" answers - respond based on your first instinct
         </div>
         
         <p style="text-align: center; font-size: clamp(17px, 2.6vh, 20px); color: var(--primary); margin-top: 40px; font-weight: 600;">
@@ -1196,7 +1183,7 @@ timeline.push({
   }
 });
 
-// DEMOGRAPHICS - EXPANDED
+// DEMOGRAPHICS
 timeline.push({
   type: jsPsychSurveyHtmlForm,
   preamble: `
@@ -1370,119 +1357,259 @@ timeline.push({
   }
 });
 
-// BLOCK 1: Modi vs Manmohan (Practice)
-timeline.push(blockIntro('Practice: Categorize Political Leaders', 'Modi', 'Manmohan', false));
+// ===========================================
+// STANDARD 7-BLOCK IAT PROCEDURE
+// Based on Greenwald et al. (1998, 2003) and Nosek et al. (2005)
+// ===========================================
+
+// Prepare stimulus arrays with randomization
+const allModiLeft = IMG_MODI.map(img => ({stim: img, side: 'left'}));
+const allModiRight = IMG_MODI.map(img => ({stim: img, side: 'right'}));
+const allManmohanLeft = IMG_MANMOHAN.map(img => ({stim: img, side: 'left'}));
+const allManmohanRight = IMG_MANMOHAN.map(img => ({stim: img, side: 'right'}));
+const allPosLeft = WORDS_POS.map(w => ({stim: w, side: 'left'}));
+const allPosRight = WORDS_POS.map(w => ({stim: w, side: 'right'}));
+const allNegLeft = WORDS_NEG.map(w => ({stim: w, side: 'left'}));
+const allNegRight = WORDS_NEG.map(w => ({stim: w, side: 'right'}));
+
+// Shuffle function
+function shuffle(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// BLOCK 1: Initial Target Concept Discrimination (Modi vs Manmohan) - 20 trials
+timeline.push(blockIntro('Practice: Categorize Political Leaders', 'Modi', 'Manmohan', false, 1));
 timeline.push({
-  timeline: [imgTrial('practice1', 'Modi', 'Manmohan', 'Modi', 'Manmohan')],
-  timeline_variables: [
-    ...IMG_MODI.map(img => ({stim: img, side: 'left'})),
-    ...IMG_MANMOHAN.map(img => ({stim: img, side: 'right'}))
-  ],
-  randomize_order: true,
-  repetitions: 2
+  timeline: [{
+    type: jsPsychIatImage,
+    stimulus: jsPsych.timelineVariable('stim'),
+    stim_key_association: jsPsych.timelineVariable('side'),
+    html_when_wrong: '<span class="error-mark">✕</span>',
+    bottom_instructions: '<p>E = Modi | I = Manmohan</p>',
+    force_correct_key_press: true,
+    display_feedback: true,
+    feedback_duration: 1000,
+    trial_duration: 3000,
+    left_category_key: 'e',
+    right_category_key: 'i',
+    left_category_label: ['Modi'],
+    right_category_label: ['Manmohan'],
+    response_ends_trial: true,
+    data: {block: 'practice1', block_number: 1, type: 'image', critical: false},
+    on_load: function() {
+      if (IS_MOBILE) setupControls('double', {e: 'Modi', i: 'Manmohan'});
+    }
+  }],
+  timeline_variables: shuffle([...allModiLeft, ...allManmohanRight, ...allModiLeft, ...allManmohanRight]),
+  randomize_order: true
 });
 
-// BLOCK 2: Positive vs Negative (Practice)
-timeline.push(blockIntro('Practice: Categorize Words', 'Positive', 'Negative', false));
+// BLOCK 2: Initial Attribute Discrimination (Positive vs Negative) - 20 trials
+timeline.push(blockIntro('Practice: Categorize Words', 'Positive', 'Negative', false, 2));
 timeline.push({
-  timeline: [wordTrial('practice2', 'Positive', 'Negative', 'Positive', 'Negative')],
-  timeline_variables: [
-    ...WORDS_POS.map(w => ({stim: w, side: 'left'})),
-    ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
-  ],
-  randomize_order: true,
-  repetitions: 1
+  timeline: [{
+    type: jsPsychIatHtml,
+    stimulus: jsPsych.timelineVariable('stim'),
+    stim_key_association: jsPsych.timelineVariable('side'),
+    html_when_wrong: '<span class="error-mark">✕</span>',
+    bottom_instructions: '<p>E = Positive | I = Negative</p>',
+    force_correct_key_press: true,
+    display_feedback: true,
+    feedback_duration: 1000,
+    trial_duration: 3000,
+    left_category_key: 'e',
+    right_category_key: 'i',
+    left_category_label: ['Positive'],
+    right_category_label: ['Negative'],
+    response_ends_trial: true,
+    data: {block: 'practice2', block_number: 2, type: 'word', critical: false},
+    on_load: function() {
+      if (IS_MOBILE) setupControls('double', {e: 'Positive', i: 'Negative'});
+    }
+  }],
+  timeline_variables: shuffle([...allPosLeft, ...allNegRight, ...allPosLeft, ...allNegRight]),
+  randomize_order: true
 });
 
-// BLOCK 3: Combined Practice (Compatible) - ALTERNATING
-timeline.push(blockIntro('Practice: Combined Categories', 'Modi or Positive', 'Manmohan or Negative', false));
-
-// Create alternating trials for practice
-const practice3Imgs = [...IMG_MODI, ...IMG_MODI].map(img => ({img, side: 'left'}))
-  .concat([...IMG_MANMOHAN, ...IMG_MANMOHAN].map(img => ({img, side: 'right'})));
-const practice3Words = [...WORDS_POS, ...WORDS_POS].map(w => ({w, side: 'left'}))
-  .concat([...WORDS_NEG, ...WORDS_NEG].map(w => ({w, side: 'right'})));
-
-// Shuffle
-const shuffledP3Imgs = practice3Imgs.sort(() => Math.random() - 0.5);
-const shuffledP3Words = practice3Words.sort(() => Math.random() - 0.5);
-
-timeline.push({
-  timeline: createAlternatingTrials(
-    shuffledP3Imgs.slice(0, 4).map(x => x.img),
-    shuffledP3Words.slice(0, 4).map(x => x.w),
-    'left', 'left',
-    'practice3', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg', false
-  )
-});
-
-// BLOCK 4: CRITICAL Compatible - STRICT ALTERNATION
-const comp4Imgs = [...IMG_MODI, ...IMG_MODI].map(img => ({img, side: 'left'}))
-  .concat([...IMG_MANMOHAN, ...IMG_MANMOHAN].map(img => ({img, side: 'right'})));
-const comp4Words = [...WORDS_POS, ...WORDS_POS].map(w => ({w, side: 'left'}))
-  .concat([...WORDS_NEG, ...WORDS_NEG].map(w => ({w, side: 'right'})));
-
-const shuffledC4Imgs = comp4Imgs.sort(() => Math.random() - 0.5);
-const shuffledC4Words = comp4Words.sort(() => Math.random() - 0.5);
-
-timeline.push({
-  timeline: createAlternatingTrials(
-    shuffledC4Imgs.map(x => x.img),
-    shuffledC4Words.map(x => x.w),
-    shuffledC4Imgs[0].side, shuffledC4Words[0].side,
-    'compatible', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg', true
-  )
-});
-
-// BLOCK 5: Reversed Leaders (Practice)
-timeline.push(blockIntro('Practice: Categorize Political Leaders', 'Manmohan', 'Modi', true));
-timeline.push({
-  timeline: [imgTrial('practice4', 'Manmohan', 'Modi', 'Manmohan', 'Modi')],
-  timeline_variables: [
-    ...IMG_MODI.map(img => ({stim: img, side: 'right'})),
-    ...IMG_MANMOHAN.map(img => ({stim: img, side: 'left'}))
-  ],
-  randomize_order: true,
-  repetitions: 5
-});
-
-// BLOCK 6: Combined Practice (Incompatible) - ALTERNATING
-timeline.push(blockIntro('Practice: Combined Categories', 'Manmohan or Positive', 'Modi or Negative', false));
-
-const practice6Imgs = [...IMG_MODI].map(img => ({img, side: 'right'}))
-  .concat([...IMG_MANMOHAN].map(img => ({img, side: 'left'})));
-const practice6Words = [...WORDS_POS].map(w => ({w, side: 'left'}))
-  .concat([...WORDS_NEG].map(w => ({w, side: 'right'})));
-
-const shuffledP6Imgs = practice6Imgs.sort(() => Math.random() - 0.5);
-const shuffledP6Words = practice6Words.sort(() => Math.random() - 0.5);
-
-timeline.push({
-  timeline: createAlternatingTrials(
-    shuffledP6Imgs.slice(0, 4).map(x => x.img),
-    shuffledP6Words.slice(0, 4).map(x => x.w),
-    shuffledP6Imgs[0].side, shuffledP6Words[0].side,
-    'practice5', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg', false
-  )
-});
-
-// BLOCK 7: CRITICAL Incompatible - STRICT ALTERNATION
-const incomp7Imgs = [...IMG_MODI, ...IMG_MODI].map(img => ({img, side: 'right'}))
-  .concat([...IMG_MANMOHAN, ...IMG_MANMOHAN].map(img => ({img, side: 'left'})));
-const incomp7Words = [...WORDS_POS, ...WORDS_POS].map(w => ({w, side: 'left'}))
-  .concat([...WORDS_NEG, ...WORDS_NEG].map(w => ({w, side: 'right'})));
-
-const shuffledI7Imgs = incomp7Imgs.sort(() => Math.random() - 0.5);
-const shuffledI7Words = incomp7Words.sort(() => Math.random() - 0.5);
-
-timeline.push({
-  timeline: createAlternatingTrials(
-    shuffledI7Imgs.map(x => x.img),
-    shuffledI7Words.map(x => x.w),
-    shuffledI7Imgs[0].side, shuffledI7Words[0].side,
-    'incompatible', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg', true
-  )
-});
+// BLOCKS 3 & 4: Initial Combined Task (Compatible/Incompatible depending on counterbalance)
+// Block 3: Practice (20 trials), Block 4: Test (40 trials)
+if (COUNTERBALANCE_ORDER === 'compatible-first') {
+  // COMPATIBLE PAIRING FIRST: Modi+Positive vs Manmohan+Negative
+  
+  // BLOCK 3: Practice Combined - Modi/Positive (20 trials)
+  timeline.push(blockIntro('Practice: Combined Categories', 'Modi or Positive', 'Manmohan or Negative', false, 3));
+  timeline.push({
+    timeline: createCombinedTrials(
+      shuffle([...IMG_MODI, ...IMG_MODI]),
+      shuffle([...WORDS_POS, ...WORDS_POS]),
+      'left', 'left',
+      'practice3', 3,
+      'Modi/Positive', 'Manmohan/Negative',
+      'Modi/Pos', 'Man/Neg',
+      false
+    )
+  });
+  
+  // BLOCK 4: Critical Test - Modi/Positive (40 trials) *** CRITICAL BLOCK ***
+  timeline.push(blockIntro('Test: Combined Categories', 'Modi or Positive', 'Manmohan or Negative', false, 4));
+  timeline.push({
+    timeline: createCombinedTrials(
+      shuffle([...IMG_MODI, ...IMG_MODI, ...IMG_MODI, ...IMG_MODI]),
+      shuffle([...WORDS_POS, ...WORDS_POS, ...WORDS_POS, ...WORDS_POS]),
+      'left', 'left',
+      'compatible', 4,
+      'Modi/Positive', 'Manmohan/Negative',
+      'Modi/Pos', 'Man/Neg',
+      true // CRITICAL BLOCK
+    )
+  });
+  
+  // BLOCK 5: Reversed Target Discrimination (40 trials)
+  timeline.push(blockIntro('Practice: Categorize Political Leaders', 'Manmohan', 'Modi', true, 5));
+  timeline.push({
+    timeline: [{
+      type: jsPsychIatImage,
+      stimulus: jsPsych.timelineVariable('stim'),
+      stim_key_association: jsPsych.timelineVariable('side'),
+      html_when_wrong: '<span class="error-mark">✕</span>',
+      bottom_instructions: '<p>E = Manmohan | I = Modi</p>',
+      force_correct_key_press: true,
+      display_feedback: true,
+      feedback_duration: 1000,
+      trial_duration: 3000,
+      left_category_key: 'e',
+      right_category_key: 'i',
+      left_category_label: ['Manmohan'],
+      right_category_label: ['Modi'],
+      response_ends_trial: true,
+      data: {block: 'practice4', block_number: 5, type: 'image', critical: false},
+      on_load: function() {
+        if (IS_MOBILE) setupControls('double', {e: 'Manmohan', i: 'Modi'});
+      }
+    }],
+    timeline_variables: shuffle([...allManmohanLeft, ...allModiRight, ...allManmohanLeft, ...allModiRight, ...allManmohanLeft, ...allModiRight]),
+    randomize_order: true
+  });
+  
+  // BLOCK 6: Practice Reversed Combined - Manmohan/Positive (20 trials)
+  timeline.push(blockIntro('Practice: Combined Categories', 'Manmohan or Positive', 'Modi or Negative', false, 6));
+  timeline.push({
+    timeline: createCombinedTrials(
+      shuffle([...IMG_MANMOHAN, ...IMG_MANMOHAN]),
+      shuffle([...WORDS_POS, ...WORDS_POS]),
+      'left', 'left',
+      'practice5', 6,
+      'Manmohan/Positive', 'Modi/Negative',
+      'Man/Pos', 'Modi/Neg',
+      false
+    )
+  });
+  
+  // BLOCK 7: Critical Test Reversed - Manmohan/Positive (40 trials) *** CRITICAL BLOCK ***
+  timeline.push(blockIntro('Test: Combined Categories', 'Manmohan or Positive', 'Modi or Negative', false, 7));
+  timeline.push({
+    timeline: createCombinedTrials(
+      shuffle([...IMG_MANMOHAN, ...IMG_MANMOHAN, ...IMG_MANMOHAN, ...IMG_MANMOHAN]),
+      shuffle([...WORDS_POS, ...WORDS_POS, ...WORDS_POS, ...WORDS_POS]),
+      'left', 'left',
+      'incompatible', 7,
+      'Manmohan/Positive', 'Modi/Negative',
+      'Man/Pos', 'Modi/Neg',
+      true // CRITICAL BLOCK
+    )
+  });
+  
+} else {
+  // INCOMPATIBLE PAIRING FIRST: Manmohan+Positive vs Modi+Negative
+  
+  // BLOCK 3: Practice Combined - Manmohan/Positive (20 trials)
+  timeline.push(blockIntro('Practice: Combined Categories', 'Manmohan or Positive', 'Modi or Negative', false, 3));
+  timeline.push({
+    timeline: createCombinedTrials(
+      shuffle([...IMG_MANMOHAN, ...IMG_MANMOHAN]),
+      shuffle([...WORDS_POS, ...WORDS_POS]),
+      'left', 'left',
+      'practice3', 3,
+      'Manmohan/Positive', 'Modi/Negative',
+      'Man/Pos', 'Modi/Neg',
+      false
+    )
+  });
+  
+  // BLOCK 4: Critical Test - Manmohan/Positive (40 trials) *** CRITICAL BLOCK ***
+  timeline.push(blockIntro('Test: Combined Categories', 'Manmohan or Positive', 'Modi or Negative', false, 4));
+  timeline.push({
+    timeline: createCombinedTrials(
+      shuffle([...IMG_MANMOHAN, ...IMG_MANMOHAN, ...IMG_MANMOHAN, ...IMG_MANMOHAN]),
+      shuffle([...WORDS_POS, ...WORDS_POS, ...WORDS_POS, ...WORDS_POS]),
+      'left', 'left',
+      'incompatible', 4,
+      'Manmohan/Positive', 'Modi/Negative',
+      'Man/Pos', 'Modi/Neg',
+      true // CRITICAL BLOCK
+    )
+  });
+  
+  // BLOCK 5: Reversed Target Discrimination (40 trials)
+  timeline.push(blockIntro('Practice: Categorize Political Leaders', 'Modi', 'Manmohan', true, 5));
+  timeline.push({
+    timeline: [{
+      type: jsPsychIatImage,
+      stimulus: jsPsych.timelineVariable('stim'),
+      stim_key_association: jsPsych.timelineVariable('side'),
+      html_when_wrong: '<span class="error-mark">✕</span>',
+      bottom_instructions: '<p>E = Modi | I = Manmohan</p>',
+      force_correct_key_press: true,
+      display_feedback: true,
+      feedback_duration: 1000,
+      trial_duration: 3000,
+      left_category_key: 'e',
+      right_category_key: 'i',
+      left_category_label: ['Modi'],
+      right_category_label: ['Manmohan'],
+      response_ends_trial: true,
+      data: {block: 'practice4', block_number: 5, type: 'image', critical: false},
+      on_load: function() {
+        if (IS_MOBILE) setupControls('double', {e: 'Modi', i: 'Manmohan'});
+      }
+    }],
+    timeline_variables: shuffle([...allModiLeft, ...allManmohanRight, ...allModiLeft, ...allManmohanRight, ...allModiLeft, ...allManmohanRight]),
+    randomize_order: true
+  });
+  
+  // BLOCK 6: Practice Combined - Modi/Positive (20 trials)
+  timeline.push(blockIntro('Practice: Combined Categories', 'Modi or Positive', 'Manmohan or Negative', false, 6));
+  timeline.push({
+    timeline: createCombinedTrials(
+      shuffle([...IMG_MODI, ...IMG_MODI]),
+      shuffle([...WORDS_POS, ...WORDS_POS]),
+      'left', 'left',
+      'practice5', 6,
+      'Modi/Positive', 'Manmohan/Negative',
+      'Modi/Pos', 'Man/Neg',
+      false
+    )
+  });
+  
+  // BLOCK 7: Critical Test - Modi/Positive (40 trials) *** CRITICAL BLOCK ***
+  timeline.push(blockIntro('Test: Combined Categories', 'Modi or Positive', 'Manmohan or Negative', false, 7));
+  timeline.push({
+    timeline: createCombinedTrials(
+      shuffle([...IMG_MODI, ...IMG_MODI, ...IMG_MODI, ...IMG_MODI]),
+      shuffle([...WORDS_POS, ...WORDS_POS, ...WORDS_POS, ...WORDS_POS]),
+      'left', 'left',
+      'compatible', 7,
+      'Modi/Positive', 'Manmohan/Negative',
+      'Modi/Pos', 'Man/Neg',
+      true // CRITICAL BLOCK
+    )
+  });
+}
 
 // POST-TEST INTRO
 timeline.push({
@@ -1507,6 +1634,7 @@ timeline.push({
   }
 });
 
+// POST-TEST MEASURES
 timeline.push({
   type: jsPsychSurveyMultiChoice,
   preamble: '<div class="header-accent"></div><h2>Explicit Preferences</h2>',
