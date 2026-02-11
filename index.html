@@ -491,12 +491,12 @@
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      min-height: 35vh !important;
+      min-height: 30vh !important;
     }
     
     .jspsych-iat-stim img {
-      max-width: min(45vw, 600px) !important;
-      max-height: 35vh !important;
+      max-width: min(35vw, 450px) !important;
+      max-height: 28vh !important;
       width: auto !important;
       height: auto !important;
       object-fit: contain !important;
@@ -653,10 +653,12 @@ console.log('Participant:', PID);
 // ===========================================
 // STIMULI
 // ===========================================
-const IMG_MODI = ['imagesmodi1.jpg.jpeg', 'imagesmodi2.jpg.jpeg', 'imagesmodi3.jpg.jpeg', 'imagesmodi4.jpg.jpeg'];
-const IMG_MANMOHAN = ['imagesprevious1.jpg.jpeg', 'imagesprevious2.jpg.jpeg', 'imagesprevious3.jpg.jpeg', 'imagesprevious4.jpg.jpeg'];
-const WORDS_POS = ['Lovely', 'Joyous', 'Pleasing', 'Glorious', 'Delightful', 'Beautiful', 'Enjoy', 'Spectacular'];
-const WORDS_NEG = ['Pain', 'Yucky', 'Failure', 'Disgust', 'Humiliate', 'Tragic', 'Rotten', 'Annoy'];
+// NOTE: You need to add imagesmodi5.jpg.jpeg, imagesmodi6.jpg.jpeg, 
+// imagesprevious5.jpg.jpeg, and imagesprevious6.jpg.jpeg to your project
+const IMG_MODI = ['imagesmodi1.jpg.jpeg', 'imagesmodi2.jpg.jpeg', 'imagesmodi3.jpg.jpeg', 'imagesmodi4.jpg.jpeg', 'imagesmodi5.jpg.jpeg', 'imagesmodi6.jpg.jpeg'];
+const IMG_MANMOHAN = ['imagesprevious1.jpg.jpeg', 'imagesprevious2.jpg.jpeg', 'imagesprevious3.jpg.jpeg', 'imagesprevious4.jpg.jpeg', 'imagesprevious5.jpg.jpeg', 'imagesprevious6.jpg.jpeg'];
+const WORDS_POS = ['Triumph', 'Joyous', 'Celebrate', 'Cheerful', 'Beautiful', 'Terrific', 'Magnificent', 'Excellent'];
+const WORDS_NEG = ['Disgust', 'Annoy', 'Hate', 'Ugly', 'Awful', 'Bothersome', 'Hurtful', 'Negative'];
 
 // ===========================================
 // CRITICAL: ALTERNATING STIMULUS FUNCTION
@@ -1284,8 +1286,8 @@ timeline.push({
         <ul>
           <li>Photos of <strong>Narendra Modi</strong></li>
           <li>Photos of <strong>Dr. Manmohan Singh</strong></li>
-          <li><strong>Positive words</strong> like "Lovely," "Joyous," "Beautiful"</li>
-          <li><strong>Negative words</strong> like "Pain," "Tragic," "Disgust"</li>
+          <li><strong>Positive words</strong> like "Triumph," "Joyous," "Beautiful"</li>
+          <li><strong>Negative words</strong> like "Disgust," "Hate," "Ugly"</li>
         </ul>
         
         <div class="info-box">
