@@ -6,22 +6,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Political Attitudes Study - IAT</title>
 
-  <!-- jsPsych -->
-  <script src="https://unpkg.com/jspsych@7.3.4"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-iat-image@1.1.3"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-iat-html@1.1.3"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@1.0.3"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-survey-multi-choice@1.1.3"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-survey-likert@1.1.3"></script>
-  <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" />
-  
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- FileSaver -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-  
   <style>
     :root {
       --primary: #1a472a;
@@ -50,17 +34,15 @@
       width: 100%;
       height: 100%;
       background: var(--bg-cream);
-      font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: var(--text-dark);
-      overflow: hidden;
-      position: fixed;
+      overflow-x: hidden;
       font-weight: 400;
     }
     
     /* Typography */
     h1, h2, h3 {
-      font-family: 'DM Serif Display', Georgia, serif;
-      font-weight: 400;
+      font-weight: 600;
       line-height: 1.2;
       color: var(--primary);
     }
@@ -93,60 +75,16 @@
       font-weight: 600;
       color: var(--text-dark);
     }
-    
-    /* FORCE LANDSCAPE */
-    @media screen and (orientation: portrait) {
-      body::before {
-        content: "↻";
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: var(--primary);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 80px;
-        z-index: 999999;
-        flex-direction: column;
-      }
-      
-      body::after {
-        content: "Please rotate your device to landscape mode";
-        position: fixed;
-        top: 60%;
-        left: 0;
-        width: 100%;
-        text-align: center;
-        color: white;
-        font-size: 18px;
-        font-family: 'Public Sans', sans-serif;
-        z-index: 999999;
-      }
-      
-      #experiment, #controls {
-        display: none !important;
-      }
-    }
-    
-    @media screen and (orientation: landscape) {
-      body {
-        padding-bottom: 28vh;
-      }
-    }
-    
+
     /* Main Container */
     .page-container {
       max-width: min(900px, 90vw);
       margin: 0 auto;
       padding: clamp(20px, 4vh, 40px) clamp(20px, 4vw, 40px);
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow-y: auto;
     }
     
     .content-card {
@@ -155,22 +93,8 @@
       padding: clamp(24px, 4vh, 48px) clamp(24px, 4vw, 48px);
       box-shadow: 0 2px 12px var(--shadow), 0 8px 40px var(--shadow-lg);
       width: 100%;
-      max-height: 85vh;
-      overflow-y: auto;
-      overflow-x: hidden;
       border: 1px solid var(--border);
       animation: fadeSlideUp 0.5s ease-out;
-      -webkit-overflow-scrolling: touch;
-    }
-    
-    /* Ensure jsPsych content is scrollable */
-    .jspsych-content-wrapper {
-      overflow-y: auto !important;
-      max-height: 85vh !important;
-    }
-    
-    .jspsych-content {
-      overflow: visible !important;
     }
     
     @keyframes fadeSlideUp {
@@ -208,11 +132,6 @@
       border-left-color: var(--accent);
     }
     
-    .info-box.success {
-      background: linear-gradient(135deg, rgba(39, 174, 96, 0.08), rgba(39, 174, 96, 0.12));
-      border-left-color: #27ae60;
-    }
-    
     /* Category Pills */
     .category-grid {
       display: grid;
@@ -234,10 +153,6 @@
       transition: transform 0.2s ease;
     }
     
-    .category-pill:hover {
-      transform: translateY(-2px);
-    }
-    
     /* Buttons */
     .primary-btn {
       width: 100%;
@@ -248,7 +163,6 @@
       border-radius: 12px;
       font-size: clamp(16px, 2.5vh, 19px);
       font-weight: 600;
-      font-family: 'Public Sans', sans-serif;
       cursor: pointer;
       margin: 12px 0;
       box-shadow: 0 4px 16px var(--shadow-lg);
@@ -263,11 +177,6 @@
     
     .primary-btn:active {
       transform: translateY(0);
-    }
-    
-    .secondary-btn {
-      background: linear-gradient(135deg, var(--accent), var(--accent-light));
-      color: var(--primary);
     }
     
     /* List Styling */
@@ -289,1509 +198,654 @@
       color: var(--accent);
       font-size: 12px;
     }
-    
-    /* MOBILE CONTROLS */
-    #controls {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 28vh;
-      background: linear-gradient(to top, var(--primary) 0%, var(--primary-light) 100%);
+
+    /* TEST SCREEN STYLES */
+    .test-container {
       display: none;
-      gap: clamp(12px, 2vw, 24px);
-      padding: clamp(16px, 2.5vh, 24px) clamp(16px, 3vw, 32px);
-      z-index: 999999;
-      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
-      border-top: 2px solid var(--accent);
-    }
-    
-    #controls.active {
-      display: flex !important;
-    }
-    
-    .control-btn {
-      flex: 1;
+      min-height: 100vh;
       background: var(--bg-white);
-      color: var(--primary);
-      border: 3px solid var(--accent);
-      border-radius: 16px;
-      font-size: clamp(36px, 6vh, 48px);
-      font-weight: 900;
-      font-family: 'DM Serif Display', serif;
-      cursor: pointer;
-      position: relative;
-      box-shadow: 0 8px 0 var(--accent), 0 12px 32px rgba(0, 0, 0, 0.3);
-      transition: all 0.15s ease;
+      padding: 20px;
+    }
+
+    .test-container.active {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      user-select: none;
     }
-    
-    .control-btn:active {
-      transform: translateY(8px);
-      box-shadow: 0 0 0 var(--accent), 0 4px 16px rgba(0, 0, 0, 0.3);
+
+    .category-labels {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: 40px;
+      padding: 0 20px;
     }
-    
-    .control-btn.single {
-      border-color: var(--accent-light);
-      box-shadow: 0 8px 0 var(--accent-light), 0 12px 32px rgba(0, 0, 0, 0.3);
-    }
-    
-    .control-btn.single:active {
-      box-shadow: 0 0 0 var(--accent-light), 0 4px 16px rgba(0, 0, 0, 0.3);
-    }
-    
-    .key-text {
-      font-size: clamp(48px, 8vh, 64px);
-      margin-bottom: 8px;
-    }
-    
-    .key-label {
-      font-size: clamp(14px, 2.2vh, 18px);
-      opacity: 0.8;
-      text-transform: uppercase;
+
+    .category-label {
       font-weight: 700;
-      letter-spacing: 0.1em;
-      font-family: 'Public Sans', sans-serif;
-    }
-    
-    /* SURVEY STYLES */
-    .jspsych-survey-multi-choice-question,
-    .jspsych-survey-likert-question,
-    .jspsych-content {
-      user-select: text !important;
-      -webkit-user-select: text !important;
-    }
-    
-    /* Fix survey scrolling */
-    #jspsych-survey-html-form-form,
-    .jspsych-survey-multi-choice-preamble,
-    .jspsych-survey-likert-preamble {
-      overflow: visible !important;
-      max-height: none !important;
-    }
-    
-    .jspsych-display-element {
-      overflow-y: auto !important;
-      overflow-x: hidden !important;
-      max-height: 85vh !important;
-      padding: clamp(20px, 3vh, 40px) clamp(20px, 3vw, 40px) !important;
-    }
-    
-    .form-section {
-      background: var(--bg-cream);
-      padding: clamp(20px, 3vh, 28px);
-      margin: 20px 0;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-    }
-    
-    .form-label {
-      display: block;
-      margin-bottom: 12px;
-      font-weight: 600;
-      font-size: clamp(15px, 2.3vh, 18px);
-      color: var(--primary);
-      font-family: 'Public Sans', sans-serif;
-    }
-    
-    .form-sublabel {
-      display: block;
-      margin-bottom: 16px;
-      font-size: clamp(13px, 2vh, 16px);
-      color: var(--text-medium);
-      font-weight: 400;
-    }
-    
-    input[type="radio"],
-    input[type="checkbox"] {
-      width: 20px !important;
-      height: 20px !important;
-      margin-right: 12px !important;
-      cursor: pointer !important;
-      accent-color: var(--primary);
-    }
-    
-    label {
-      cursor: pointer !important;
-      user-select: none !important;
-      -webkit-user-select: none !important;
-      display: flex !important;
-      align-items: center !important;
-      padding: 10px !important;
-      margin: 6px 0 !important;
-      border-radius: 8px !important;
-      transition: background 0.2s ease !important;
-      font-size: clamp(14px, 2.1vh, 17px) !important;
-    }
-    
-    label:hover {
-      background: rgba(26, 71, 42, 0.04) !important;
-    }
-    
-    input[type="text"],
-    input[type="number"],
-    select {
-      font-size: clamp(15px, 2.2vh, 18px) !important;
-      padding: 12px 16px !important;
-      border: 2px solid var(--border) !important;
-      border-radius: 8px !important;
-      width: 100% !important;
-      max-width: 300px !important;
-      user-select: text !important;
-      -webkit-user-select: text !important;
-      font-family: 'Public Sans', sans-serif !important;
-      transition: border-color 0.2s ease !important;
-    }
-    
-    input[type="text"]:focus,
-    input[type="number"]:focus,
-    select:focus {
-      outline: none !important;
-      border-color: var(--primary) !important;
-    }
-    
-    #jspsych-survey-html-form-next,
-    #jspsych-survey-multi-choice-next,
-    #jspsych-survey-likert-next {
-      background: linear-gradient(135deg, var(--primary), var(--primary-light)) !important;
-      color: white !important;
-      border: none !important;
-      padding: 16px 32px !important;
-      font-size: clamp(16px, 2.5vh, 19px) !important;
-      font-weight: 600 !important;
-      border-radius: 12px !important;
-      cursor: pointer !important;
-      margin-top: 32px !important;
-      font-family: 'Public Sans', sans-serif !important;
-      box-shadow: 0 4px 16px var(--shadow-lg) !important;
-      transition: all 0.3s ease !important;
-    }
-    
-    #jspsych-survey-html-form-next:hover,
-    #jspsych-survey-multi-choice-next:hover,
-    #jspsych-survey-likert-next:hover {
-      transform: translateY(-2px) !important;
-      box-shadow: 0 6px 24px var(--shadow-lg) !important;
-    }
-    
-    /* TRIAL DISPLAY - FIXED IMAGE SIZING */
-    .jspsych-iat-stim {
-      font-size: clamp(44px, 7.5vh, 68px) !important;
-      font-weight: 700 !important;
-      color: var(--primary) !important;
-      margin: 3vh auto !important;
-      text-align: center !important;
-      padding: 2vh 3vw !important;
-      font-family: 'DM Serif Display', serif !important;
-      letter-spacing: -0.02em !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      min-height: 25vh !important;
-      max-height: 40vh !important;
-      overflow: visible !important;
-    }
-    
-    /* CRITICAL IMAGE SIZE FIX - Constrain images to fit within viewport */
-    .jspsych-iat-stim img {
-      max-width: min(500px, 60vw) !important;
-      max-height: min(320px, 36vh) !important;
-      width: auto !important;
-      height: auto !important;
-      object-fit: contain !important;
-      border-radius: 8px !important;
-      display: block !important;
-      margin: 0 auto !important;
-      box-shadow: 0 4px 16px var(--shadow-lg) !important;
-      border: 2px solid var(--border) !important;
-    }
-    
-    /* ERROR FEEDBACK - Per Greenwald et al. (2003) recommendations */
-    .error-mark {
-      color: var(--error-red) !important;
-      font-size: clamp(100px, 18vh, 160px) !important;
-      font-weight: 900 !important;
-      display: block !important;
-      margin: 5vh auto !important;
-      text-align: center !important;
-      line-height: 1 !important;
-      text-shadow: 0 8px 20px rgba(231, 76, 60, 0.5) !important;
-      animation: errorPulse 0.4s ease-out !important;
-      padding: 40px !important;
-    }
-    
-    /* jsPsych's feedback container - styled but only visible when content exists */
-    #jspsych-iat-html-stim-feedback:not(:empty),
-    #jspsych-iat-image-stim-feedback:not(:empty) {
-      color: #e74c3c !important;
-      font-size: clamp(100px, 18vh, 160px) !important;
-      font-weight: 900 !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      text-align: center !important;
-      margin: 5vh auto !important;
-      padding: 40px !important;
-      background: rgba(255, 255, 255, 0.95) !important;
-      border-radius: 20px !important;
-      box-shadow: 0 10px 40px rgba(231, 76, 60, 0.4) !important;
-      animation: errorPulse 0.4s ease-out !important;
-    }
-    
-    @keyframes errorPulse {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.1); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    
-    .jspsych-iat-category {
-      font-weight: 700 !important;
-      font-size: clamp(18px, 2.8vh, 22px) !important;
-      padding: 14px 24px !important;
-      border: 3px solid var(--primary) !important;
-      border-radius: 10px !important;
-      margin: 12px !important;
-      background: var(--bg-white) !important;
-      font-family: 'Public Sans', sans-serif !important;
-    }
-    
-    .jspsych-display-element > p {
-      font-size: clamp(18px, 3vh, 24px) !important;
-      color: var(--bg-cream) !important;
-      background: rgba(26, 71, 42, 0.9) !important;
-      margin-top: 3vh !important;
-      padding: 20px 24px 30vh !important;
-      text-align: center !important;
-      font-weight: 600 !important;
-      font-family: 'Public Sans', sans-serif !important;
-    }
-    
-    /* Results */
-    .result-grid {
-      display: grid;
-      gap: 12px;
-      margin: 24px 0;
-      background: var(--bg-cream);
-      padding: 24px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-    }
-    
-    .result-item {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 16px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: clamp(14px, 2.1vh, 17px);
-    }
-    
-    .result-item:last-child {
-      border-bottom: none;
-    }
-    
-    .result-label {
-      font-weight: 600;
-      color: var(--text-dark);
-    }
-    
-    .result-value {
-      color: var(--text-medium);
-      text-align: right;
-    }
-    
-    .result-highlight {
-      background: var(--bg-white);
-      padding: 20px;
+      font-size: clamp(18px, 2.8vh, 24px);
+      padding: 14px 24px;
+      border: 3px solid var(--primary);
       border-radius: 10px;
-      margin: 16px 0;
-      border: 2px solid var(--accent);
+      background: var(--bg-white);
       text-align: center;
-      font-size: clamp(16px, 2.5vh, 20px);
-      font-weight: 600;
-      color: var(--primary);
+      min-width: 200px;
     }
-    
-    /* Progress Indicator */
+
+    .category-label.left {
+      color: #2c5282;
+      border-color: #2c5282;
+    }
+
+    .category-label.right {
+      color: #22543d;
+      border-color: #22543d;
+    }
+
+    .stimulus-area {
+      min-height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .stimulus {
+      font-size: clamp(44px, 7.5vh, 68px);
+      font-weight: 700;
+      color: var(--primary);
+      text-align: center;
+      padding: 2vh 3vw;
+    }
+
+    .stimulus img {
+      max-width: min(500px, 60vw);
+      max-height: min(320px, 36vh);
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px var(--shadow-lg);
+      border: 2px solid var(--border);
+    }
+
+    .error-feedback {
+      display: none;
+      color: var(--error-red);
+      font-size: clamp(100px, 18vh, 160px);
+      font-weight: 900;
+      text-shadow: 0 8px 20px rgba(231, 76, 60, 0.5);
+      animation: errorPulse 0.4s ease-out;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .error-feedback.show {
+      display: block;
+    }
+
+    @keyframes errorPulse {
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+
+    .instructions {
+      margin-top: 40px;
+      text-align: center;
+      font-size: clamp(18px, 3vh, 24px);
+      color: var(--text-medium);
+      padding: 20px;
+      background: rgba(26, 71, 42, 0.05);
+      border-radius: 12px;
+    }
+
+    /* Progress */
+    .progress-container {
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: 20px;
+    }
+
     .progress-bar {
       width: 100%;
-      height: 6px;
+      height: 8px;
       background: var(--border);
-      border-radius: 3px;
-      margin-bottom: 24px;
+      border-radius: 4px;
       overflow: hidden;
     }
-    
+
     .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--accent), var(--accent-light));
-      transition: width 0.5s ease;
-      border-radius: 3px;
-    }
-    
-    /* Scrollbar */
-    .content-card::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    .content-card::-webkit-scrollbar-track {
-      background: var(--bg-cream);
+      transition: width 0.3s ease;
       border-radius: 4px;
     }
-    
-    .content-card::-webkit-scrollbar-thumb {
-      background: var(--primary);
-      border-radius: 4px;
+
+    .progress-text {
+      text-align: center;
+      margin-top: 8px;
+      font-size: 14px;
+      color: var(--text-medium);
     }
-    
-    .content-card::-webkit-scrollbar-thumb:hover {
-      background: var(--primary-light);
+
+    .hidden {
+      display: none !important;
     }
   </style>
 </head>
 
 <body>
-  <div id="experiment"></div>
-  <div id="controls"></div>
+  <!-- WELCOME SCREEN -->
+  <div id="welcome" class="page-container">
+    <div class="content-card">
+      <div class="header-accent"></div>
+      <h1>Prime Minister's Popularity Study</h1>
+      <h2 style="margin-bottom: 24px;">Implicit Association Test</h2>
+      
+      <div class="info-box">
+        <strong>Research Purpose</strong><br>
+        This study examines automatic associations between political figures and positive/negative concepts. You will categorize photos of Mr. Narendra Modi and Dr. Manmohan Singh, along with positive and negative words.
+      </div>
+      
+      <h3>What You'll Do</h3>
+      <ul>
+        <li><strong>Categorization Task:</strong> You'll see images and words appear on screen one at a time</li>
+        <li><strong>Your Job:</strong> Press <strong>E</strong> for items that belong to categories on the left, or <strong>I</strong> for items on the right</li>
+        <li><strong>Speed Matters:</strong> Respond as quickly as you can while being accurate</li>
+        <li><strong>Mistakes Happen:</strong> If you make an error, a red X will appear—just press the correct key to continue</li>
+      </ul>
+      
+      <div class="info-box warning">
+        <strong>Time Required:</strong> Approximately 5-7 minutes<br>
+        <strong>Important:</strong> There are no "right" or "wrong" answers—just respond based on your first instinct
+      </div>
+      
+      <button class="primary-btn" onclick="startTest()">
+        Begin Test
+      </button>
+    </div>
+  </div>
+
+  <!-- TEST SCREEN -->
+  <div id="testScreen" class="test-container">
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+      </div>
+      <div class="progress-text" id="progressText">Block 1 of 7</div>
+    </div>
+
+    <div class="category-labels">
+      <div class="category-label left" id="leftLabel">Modi</div>
+      <div class="category-label right" id="rightLabel">Manmohan</div>
+    </div>
+
+    <div class="stimulus-area">
+      <div id="stimulus" class="stimulus"></div>
+      <div id="errorFeedback" class="error-feedback">✕</div>
+    </div>
+
+    <div class="instructions" id="instructions">
+      Press <strong>E</strong> for left category | Press <strong>I</strong> for right category
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div id="results" class="page-container hidden">
+    <div class="content-card">
+      <div class="header-accent"></div>
+      <h1>Test Complete</h1>
+      <h2>Thank You for Participating</h2>
+      
+      <div class="info-box">
+        <strong>Your results have been recorded.</strong><br>
+        The Implicit Association Test measures the strength of automatic associations between concepts.
+      </div>
+
+      <div id="resultDetails"></div>
+      
+      <p style="margin-top: 30px;">
+        This test is based on the methodology developed by Greenwald, McGhee, and Schwartz (1998) 
+        and widely used in social psychology research.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // ===========================================
+    // GLOBAL VARIABLES
+    // ===========================================
+    const PID = 'P' + Date.now();
+    let currentBlock = 0;
+    let currentTrial = 0;
+    let blockData = [];
+    let allData = [];
+    let startTime = 0;
+    let awaitingResponse = false;
+    let currentStimulus = null;
+    let currentCorrectKey = null;
+
+    console.log('=== IAT STARTED ===');
+    console.log('Participant:', PID);
+
+    // ===========================================
+    // STIMULI
+    // ===========================================
+    const IMG_MODI = ['modi1.jpeg', 'modi2.jpeg', 'modi3.jpeg', 'modi4.jpeg', 'modi5.jpeg', 'modi6.jpeg'];
+    const IMG_MANMOHAN = ['mohan1.jpeg', 'mohan2.jpeg', 'mohan3.jpeg', 'mohan4.jpeg', 'mohan5.jpeg', 'mohan6.jpeg'];
+    const WORDS_GOOD = ['Triumph', 'Joyous', 'Celebrate', 'Cheerful', 'Beautiful', 'Terrific', 'Magnificent', 'Excellent'];
+    const WORDS_BAD = ['Disgust', 'Annoy', 'Hate', 'Ugly', 'Awful', 'Bothersome', 'Hurtful', 'Negative'];
+
+    // ===========================================
+    // TEST BLOCKS CONFIGURATION
+    // Based on Greenwald et al. (1998) methodology
+    // ===========================================
+    const testBlocks = [
+      // Block 1: Practice - Modi vs Manmohan (20 trials)
+      {
+        name: 'Practice: Political Figures',
+        leftCategory: 'Modi',
+        rightCategory: 'Manmohan',
+        leftStimuli: IMG_MODI.map(img => ({type: 'image', value: img, key: 'e'})),
+        rightStimuli: IMG_MANMOHAN.map(img => ({type: 'image', value: img, key: 'i'})),
+        trials: 20,
+        practice: true
+      },
+      
+      // Block 2: Practice - Good vs Bad (20 trials)
+      {
+        name: 'Practice: Word Valence',
+        leftCategory: 'Good',
+        rightCategory: 'Bad',
+        leftStimuli: WORDS_GOOD.map(w => ({type: 'word', value: w, key: 'e'})),
+        rightStimuli: WORDS_BAD.map(w => ({type: 'word', value: w, key: 'i'})),
+        trials: 20,
+        practice: true
+      },
+      
+      // Block 3: Practice - Compatible (Modi+Good vs Manmohan+Bad) (20 trials)
+      {
+        name: 'Practice: Combined Categories',
+        leftCategory: 'Modi or Good',
+        rightCategory: 'Manmohan or Bad',
+        leftStimuli: [
+          ...IMG_MODI.map(img => ({type: 'image', value: img, key: 'e'})),
+          ...WORDS_GOOD.map(w => ({type: 'word', value: w, key: 'e'}))
+        ],
+        rightStimuli: [
+          ...IMG_MANMOHAN.map(img => ({type: 'image', value: img, key: 'i'})),
+          ...WORDS_BAD.map(w => ({type: 'word', value: w, key: 'i'}))
+        ],
+        trials: 20,
+        practice: true,
+        combined: true
+      },
+      
+      // Block 4: CRITICAL - Compatible (Modi+Good vs Manmohan+Bad) (40 trials)
+      {
+        name: 'Combined Categories',
+        leftCategory: 'Modi or Good',
+        rightCategory: 'Manmohan or Bad',
+        leftStimuli: [
+          ...IMG_MODI.map(img => ({type: 'image', value: img, key: 'e'})),
+          ...WORDS_GOOD.map(w => ({type: 'word', value: w, key: 'e'}))
+        ],
+        rightStimuli: [
+          ...IMG_MANMOHAN.map(img => ({type: 'image', value: img, key: 'i'})),
+          ...WORDS_BAD.map(w => ({type: 'word', value: w, key: 'i'}))
+        ],
+        trials: 40,
+        critical: true,
+        blockType: 'compatible',
+        combined: true
+      },
+      
+      // Block 5: Practice - Reversed (Manmohan vs Modi) (20 trials)
+      {
+        name: 'Practice: Political Figures (Reversed)',
+        leftCategory: 'Manmohan',
+        rightCategory: 'Modi',
+        leftStimuli: IMG_MANMOHAN.map(img => ({type: 'image', value: img, key: 'e'})),
+        rightStimuli: IMG_MODI.map(img => ({type: 'image', value: img, key: 'i'})),
+        trials: 20,
+        practice: true,
+        reversed: true
+      },
+      
+      // Block 6: Practice - Incompatible (Manmohan+Good vs Modi+Bad) (20 trials)
+      {
+        name: 'Practice: Combined Categories',
+        leftCategory: 'Manmohan or Good',
+        rightCategory: 'Modi or Bad',
+        leftStimuli: [
+          ...IMG_MANMOHAN.map(img => ({type: 'image', value: img, key: 'e'})),
+          ...WORDS_GOOD.map(w => ({type: 'word', value: w, key: 'e'}))
+        ],
+        rightStimuli: [
+          ...IMG_MODI.map(img => ({type: 'image', value: img, key: 'i'})),
+          ...WORDS_BAD.map(w => ({type: 'word', value: w, key: 'i'}))
+        ],
+        trials: 20,
+        practice: true,
+        combined: true
+      },
+      
+      // Block 7: CRITICAL - Incompatible (Manmohan+Good vs Modi+Bad) (40 trials)
+      {
+        name: 'Combined Categories',
+        leftCategory: 'Manmohan or Good',
+        rightCategory: 'Modi or Bad',
+        leftStimuli: [
+          ...IMG_MANMOHAN.map(img => ({type: 'image', value: img, key: 'e'})),
+          ...WORDS_GOOD.map(w => ({type: 'word', value: w, key: 'e'}))
+        ],
+        rightStimuli: [
+          ...IMG_MODI.map(img => ({type: 'image', value: img, key: 'i'})),
+          ...WORDS_BAD.map(w => ({type: 'word', value: w, key: 'i'}))
+        ],
+        trials: 40,
+        critical: true,
+        blockType: 'incompatible',
+        combined: true
+      }
+    ];
+
+    // ===========================================
+    // CORE FUNCTIONS
+    // ===========================================
+    function startTest() {
+      document.getElementById('welcome').classList.add('hidden');
+      document.getElementById('testScreen').classList.add('active');
+      currentBlock = 0;
+      currentTrial = 0;
+      blockData = [];
+      allData = [];
+      startBlock();
+    }
+
+    function startBlock() {
+      if (currentBlock >= testBlocks.length) {
+        endTest();
+        return;
+      }
+
+      const block = testBlocks[currentBlock];
+      currentTrial = 0;
+      blockData = [];
+
+      // Update labels
+      document.getElementById('leftLabel').textContent = block.leftCategory;
+      document.getElementById('rightLabel').textContent = block.rightCategory;
+      
+      // Update progress
+      updateProgress();
+
+      // Show instruction screen before block
+      if (currentBlock === 0 || block.reversed || (currentBlock > 0 && testBlocks[currentBlock-1].practice && block.critical)) {
+        showBlockInstructions();
+      } else {
+        setTimeout(() => nextTrial(), 500);
+      }
+    }
+
+    function showBlockInstructions() {
+      const block = testBlocks[currentBlock];
+      awaitingResponse = true;
+      
+      let instructionText = `<strong>${block.name}</strong><br><br>`;
+      
+      if (block.reversed) {
+        instructionText += '<span style="color: var(--error-red);">⚠ Categories have switched sides!</span><br><br>';
+      }
+      
+      instructionText += `Press <strong>E</strong> for: ${block.leftCategory}<br>`;
+      instructionText += `Press <strong>I</strong> for: ${block.rightCategory}<br><br>`;
+      instructionText += '<em>Press SPACE to begin</em>';
+
+      document.getElementById('stimulus').innerHTML = instructionText;
+      document.getElementById('stimulus').style.fontSize = '24px';
+      
+      const spaceHandler = function(e) {
+        if (e.code === 'Space') {
+          document.removeEventListener('keydown', spaceHandler);
+          awaitingResponse = false;
+          setTimeout(() => nextTrial(), 300);
+        }
+      };
+      
+      document.addEventListener('keydown', spaceHandler);
+    }
+
+    function nextTrial() {
+      const block = testBlocks[currentBlock];
+      
+      if (currentTrial >= block.trials) {
+        currentBlock++;
+        startBlock();
+        return;
+      }
+
+      // Select stimulus alternating between categories
+      const allStimuli = [...block.leftStimuli, ...block.rightStimuli];
+      const shuffled = shuffleArray([...allStimuli]);
+      currentStimulus = shuffled[currentTrial % shuffled.length];
+      currentCorrectKey = currentStimulus.key;
+
+      // Display stimulus
+      const stimulusEl = document.getElementById('stimulus');
+      document.getElementById('errorFeedback').classList.remove('show');
+      
+      if (currentStimulus.type === 'image') {
+        stimulusEl.innerHTML = `<img src="${currentStimulus.value}" alt="Political figure">`;
+      } else {
+        stimulusEl.textContent = currentStimulus.value;
+        stimulusEl.style.fontSize = 'clamp(44px, 7.5vh, 68px)';
+      }
+
+      startTime = Date.now();
+      awaitingResponse = true;
+    }
+
+    function handleResponse(key) {
+      if (!awaitingResponse) return;
+
+      const rt = Date.now() - startTime;
+      const correct = key === currentCorrectKey;
+
+      if (!correct) {
+        // Show error feedback
+        document.getElementById('errorFeedback').classList.add('show');
+        setTimeout(() => {
+          document.getElementById('errorFeedback').classList.remove('show');
+        }, 1000);
+        return; // Wait for correct response
+      }
+
+      // Record data
+      const block = testBlocks[currentBlock];
+      const trialData = {
+        block: currentBlock + 1,
+        blockName: block.name,
+        blockType: block.blockType || 'practice',
+        trial: currentTrial + 1,
+        stimulus: currentStimulus.value,
+        stimulusType: currentStimulus.type,
+        correctKey: currentCorrectKey,
+        responseKey: key,
+        correct: correct,
+        rt: rt,
+        timestamp: new Date().toISOString()
+      };
+
+      blockData.push(trialData);
+      allData.push(trialData);
+
+      awaitingResponse = false;
+      currentTrial++;
+      
+      // Inter-trial interval
+      setTimeout(() => nextTrial(), 250);
+    }
+
+    function updateProgress() {
+      const totalBlocks = testBlocks.length;
+      const progress = ((currentBlock) / totalBlocks) * 100;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressText').textContent = `Block ${currentBlock + 1} of ${totalBlocks}`;
+    }
+
+    function endTest() {
+      document.getElementById('testScreen').classList.remove('active');
+      document.getElementById('results').classList.remove('hidden');
+      
+      calculateResults();
+    }
+
+    function calculateResults() {
+      // Extract critical block data
+      const compatibleData = allData.filter(t => t.blockType === 'compatible' && t.correct);
+      const incompatibleData = allData.filter(t => t.blockType === 'incompatible' && t.correct);
+
+      if (compatibleData.length === 0 || incompatibleData.length === 0) {
+        document.getElementById('resultDetails').innerHTML = `
+          <div class="info-box warning">
+            <strong>Insufficient data for analysis.</strong><br>
+            Please ensure you complete all blocks of the test.
+          </div>
+        `;
+        return;
+      }
+
+      // Calculate mean RTs
+      const meanCompatible = compatibleData.reduce((sum, t) => sum + t.rt, 0) / compatibleData.length;
+      const meanIncompatible = incompatibleData.reduce((sum, t) => sum + t.rt, 0) / incompatibleData.length;
+
+      // Calculate D-score (standardized effect size)
+      const sdCompatible = calculateSD(compatibleData.map(t => t.rt));
+      const sdIncompatible = calculateSD(incompatibleData.map(t => t.rt));
+      const pooledSD = Math.sqrt((sdCompatible ** 2 + sdIncompatible ** 2) / 2);
+      const dScore = (meanIncompatible - meanCompatible) / pooledSD;
+
+      // Interpretation
+      let interpretation = '';
+      let description = '';
+      
+      if (Math.abs(dScore) < 0.15) {
+        interpretation = 'No clear automatic preference detected';
+        description = 'Your response times were similar for both pairings.';
+      } else if (dScore > 0.65) {
+        interpretation = 'Strong automatic preference for Modi with positive words';
+        description = 'You responded much faster when Modi was paired with positive words.';
+      } else if (dScore > 0.35) {
+        interpretation = 'Moderate automatic preference for Modi with positive words';
+        description = 'You responded noticeably faster when Modi was paired with positive words.';
+      } else if (dScore > 0.15) {
+        interpretation = 'Slight automatic preference for Modi with positive words';
+        description = 'You responded somewhat faster when Modi was paired with positive words.';
+      } else if (dScore < -0.65) {
+        interpretation = 'Strong automatic preference for Manmohan with positive words';
+        description = 'You responded much faster when Manmohan was paired with positive words.';
+      } else if (dScore < -0.35) {
+        interpretation = 'Moderate automatic preference for Manmohan with positive words';
+        description = 'You responded noticeably faster when Manmohan was paired with positive words.';
+      } else {
+        interpretation = 'Slight automatic preference for Manmohan with positive words';
+        description = 'You responded somewhat faster when Manmohan was paired with positive words.';
+      }
+
+      // Calculate accuracy
+      const totalTrials = allData.length;
+      const correctTrials = allData.filter(t => t.correct).length;
+      const accuracy = ((correctTrials / totalTrials) * 100).toFixed(1);
+
+      // Display results
+      document.getElementById('resultDetails').innerHTML = `
+        <div style="background: var(--bg-cream); padding: 24px; border-radius: 12px; margin: 20px 0;">
+          <h3 style="margin-bottom: 16px;">Your Results</h3>
+          
+          <div style="margin: 16px 0;">
+            <strong>D-Score:</strong> ${dScore.toFixed(3)}
+          </div>
+          
+          <div style="margin: 16px 0; padding: 16px; background: white; border-radius: 8px; border-left: 4px solid var(--accent);">
+            <strong style="font-size: 18px;">${interpretation}</strong><br>
+            <p style="margin-top: 8px;">${description}</p>
+          </div>
+          
+          <div style="margin: 16px 0;">
+            <strong>Overall Accuracy:</strong> ${accuracy}%
+          </div>
+          
+          <div style="margin: 16px 0;">
+            <strong>Average Response Time (Modi + Positive):</strong> ${Math.round(meanCompatible)} ms
+          </div>
+          
+          <div style="margin: 16px 0;">
+            <strong>Average Response Time (Manmohan + Positive):</strong> ${Math.round(meanIncompatible)} ms
+          </div>
+        </div>
+
+        <div class="info-box">
+          <strong>What does this mean?</strong><br>
+          The IAT measures automatic associations that may differ from your conscious beliefs. 
+          A positive D-score suggests stronger automatic association between Modi and positive concepts, 
+          while a negative D-score suggests stronger automatic association between Manmohan and positive concepts.
+          <br><br>
+          <strong>Important Note:</strong> This test measures automatic associations, not explicit attitudes 
+          or voting preferences. Many factors influence IAT scores, including recent exposure to media coverage.
+        </div>
+      `;
+
+      // Log data for research purposes
+      console.log('=== TEST COMPLETE ===');
+      console.log('Participant:', PID);
+      console.log('D-Score:', dScore.toFixed(3));
+      console.log('Interpretation:', interpretation);
+      console.log('All trial data:', allData);
+    }
+
+    function calculateSD(values) {
+      const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+      const squaredDiffs = values.map(val => (val - mean) ** 2);
+      const variance = squaredDiffs.reduce((sum, val) => sum + val, 0) / values.length;
+      return Math.sqrt(variance);
+    }
+
+    function shuffleArray(array) {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      }
+      return newArray;
+    }
+
+    // ===========================================
+    // EVENT LISTENERS
+    // ===========================================
+    document.addEventListener('keydown', function(e) {
+      if (!awaitingResponse) return;
+      
+      if (e.code === 'KeyE' || e.code === 'KeyI') {
+        e.preventDefault();
+        const key = e.code === 'KeyE' ? 'e' : 'i';
+        handleResponse(key);
+      }
+    });
+
+    // Prevent accidental page refresh
+    window.addEventListener('beforeunload', function(e) {
+      if (currentBlock > 0 && currentBlock < testBlocks.length) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+  </script>
 </body>
-
-<script>
-// ===========================================
-// GLOBAL VARIABLES
-// ===========================================
-const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
-const PID = 'P' + Date.now();
-let EXPERIMENT_DATA = null;
-let DEMOGRAPHIC_DATA = {};
-let POST_TEST_DATA = {};
-
-console.log('=== IAT STARTED ===');
-console.log('Mobile:', IS_MOBILE);
-console.log('Participant:', PID);
-
-// ===========================================
-// STIMULI - Based on Greenwald et al. (1998, 2003)
-// ===========================================
-const IMG_MODI = ['modi1.jpeg', 'modi2.jpeg', 'modi3.jpeg', 'modi4.jpeg', 'modi5.jpeg', 'modi6.jpeg'];
-const IMG_MANMOHAN = ['mohan1.jpeg', 'mohan2.jpeg', 'mohan3.jpeg', 'mohan4.jpeg', 'mohan5.jpeg', 'mohan6.jpeg'];
-
-// Balanced pleasant/unpleasant words (8 each as per IAT best practices)
-const WORDS_POS = ['Triumph', 'Joyous', 'Celebrate', 'Cheerful', 'Beautiful', 'Terrific', 'Magnificent', 'Excellent'];
-const WORDS_NEG = ['Disgust', 'Annoy', 'Hate', 'Ugly', 'Awful', 'Bothersome', 'Hurtful', 'Negative'];
-
-// ===========================================
-// RANDOMIZATION
-// According to Nosek et al. (2005), counterbalancing is critical
-// ===========================================
-const COUNTERBALANCE_ORDER = Math.random() < 0.5 ? 'compatible-first' : 'incompatible-first';
-
-console.log('Counterbalance order:', COUNTERBALANCE_ORDER);
-
-// ===========================================
-// KEY PRESS FUNCTION
-// ===========================================
-window.doKeyPress = function(key) {
-  console.log('🔑 KEY PRESSED:', key);
-  
-  const codes = {
-    'e': {key: 'e', code: 'KeyE', keyCode: 69},
-    'i': {key: 'i', code: 'KeyI', keyCode: 73},
-    ' ': {key: ' ', code: 'Space', keyCode: 32}
-  };
-  
-  const info = codes[key];
-  
-  const down = new KeyboardEvent('keydown', {
-    key: info.key,
-    code: info.code,
-    keyCode: info.keyCode,
-    which: info.keyCode,
-    bubbles: true,
-    cancelable: true
-  });
-  
-  const up = new KeyboardEvent('keyup', {
-    key: info.key,
-    code: info.code,
-    keyCode: info.keyCode,
-    which: info.keyCode,
-    bubbles: true,
-    cancelable: true
-  });
-  
-  document.dispatchEvent(down);
-  setTimeout(() => document.dispatchEvent(up), 50);
-}
-
-// ===========================================
-// CONTROL SETUP
-// ===========================================
-window.setupControls = function(mode, labels) {
-  console.log('🎮 SETUP CONTROLS:', mode, labels);
-  
-  if (!IS_MOBILE) return;
-  
-  const ctrl = document.getElementById('controls');
-  ctrl.innerHTML = '';
-  ctrl.className = 'active';
-  
-  if (mode === 'single') {
-    ctrl.innerHTML = `
-      <button class="control-btn single" onclick="doKeyPress(' ')">
-        <div class="key-text">TAP</div>
-        <div class="key-label">${labels}</div>
-      </button>
-    `;
-  } else {
-    ctrl.innerHTML = `
-      <button class="control-btn" onclick="doKeyPress('e')">
-        <div class="key-text">E</div>
-        <div class="key-label">${labels.e}</div>
-      </button>
-      <button class="control-btn" onclick="doKeyPress('i')">
-        <div class="key-text">I</div>
-        <div class="key-label">${labels.i}</div>
-      </button>
-    `;
-  }
-}
-
-window.hideControls = function() {
-  console.log('🚫 HIDE CONTROLS');
-  const ctrl = document.getElementById('controls');
-  if (ctrl) ctrl.className = '';
-}
-
-// ===========================================
-// DOWNLOAD FUNCTIONS
-// ===========================================
-window.downloadCSV = function() {
-  if (!EXPERIMENT_DATA) {
-    alert('No data available!');
-    return;
-  }
-  const blob = new Blob([EXPERIMENT_DATA.fullCSV], {type: 'text/csv;charset=utf-8'});
-  saveAs(blob, `IAT_FullData_${PID}.csv`);
-  alert('✅ Full data CSV downloaded!');
-}
-
-window.downloadSummary = function() {
-  if (!EXPERIMENT_DATA) {
-    alert('No data available!');
-    return;
-  }
-  const blob = new Blob([EXPERIMENT_DATA.summaryCSV], {type: 'text/csv;charset=utf-8'});
-  saveAs(blob, `IAT_Summary_${PID}.csv`);
-  alert('✅ Summary CSV downloaded!');
-}
-
-window.downloadBoth = function() {
-  downloadSummary();
-  setTimeout(() => downloadCSV(), 500);
-}
-
-// ===========================================
-// JSPSYCH INITIALIZATION
-// ===========================================
-const jsPsych = initJsPsych({
-  display_element: 'experiment',
-  
-  on_finish: function() {
-    hideControls();
-    console.log('📊 PROCESSING DATA');
-    processAndDisplayResults();
-  },
-  
-  on_data_update: function(data) {
-    data.participant_id = PID;
-    data.device = IS_MOBILE ? 'mobile' : 'desktop';
-    data.timestamp = new Date().toISOString();
-    data.counterbalance_order = COUNTERBALANCE_ORDER;
-  }
-});
-
-// ===========================================
-// DATA PROCESSING - Implements D-score algorithm from Greenwald et al. (2003)
-// ===========================================
-function processAndDisplayResults() {
-  const allData = jsPsych.data.get();
-  
-  // Get demographic data
-  const demoTrial = allData.filter({trial_type: 'survey-html-form'}).values()[0];
-  if (demoTrial && demoTrial.response) {
-    DEMOGRAPHIC_DATA = demoTrial.response;
-  }
-  
-  // Get post-test data
-  const postTestTrials = allData.filter({phase: 'post_test'}).values();
-  postTestTrials.forEach(trial => {
-    if (trial.response) {
-      Object.assign(POST_TEST_DATA, trial.response);
-    }
-  });
-  
-  // Get IAT data - only critical blocks
-  const iatData = allData.filter([
-    {trial_type: 'iat-image'},
-    {trial_type: 'iat-html'}
-  ]);
-  
-  const compatibleBlock = iatData.filter({block: 'compatible', critical: true});
-  const incompatibleBlock = iatData.filter({block: 'incompatible', critical: true});
-  
-  // Calculate D-score using improved algorithm (Greenwald et al., 2003)
-  const meanComp = compatibleBlock.select('rt').mean();
-  const meanIncomp = incompatibleBlock.select('rt').mean();
-  const sdComp = compatibleBlock.select('rt').sd();
-  const sdIncomp = incompatibleBlock.select('rt').sd();
-  
-  // Pooled standard deviation
-  const pooledSD = Math.sqrt((sdComp * sdComp + sdIncomp * sdIncomp) / 2);
-  
-  // D-score: (Mean_Incompatible - Mean_Compatible) / Pooled_SD
-  const dScore = (meanIncomp - meanComp) / pooledSD;
-  
-  const correct = iatData.filter({correct: true}).count();
-  const total = iatData.count();
-  const accuracy = ((correct / total) * 100).toFixed(1);
-  const meanRT = iatData.select('rt').mean().toFixed(0);
-  
-  // Interpret D-score based on Greenwald et al. (2003) benchmarks
-  let interpretation = '';
-  let explanation = '';
-  let strength = '';
-  
-  const absDScore = Math.abs(dScore);
-  
-  if (absDScore < 0.15) {
-    strength = 'No clear preference';
-    interpretation = 'Little to no automatic preference';
-    explanation = 'Response times were similar for both pairings.';
-  } else if (absDScore >= 0.15 && absDScore < 0.35) {
-    strength = 'Slight';
-  } else if (absDScore >= 0.35 && absDScore < 0.65) {
-    strength = 'Moderate';
-  } else {
-    strength = 'Strong';
-  }
-  
-  if (dScore > 0.15) {
-    interpretation = `${strength} automatic preference for Modi + Positive`;
-    explanation = dScore > 0.35 
-      ? 'Noticeably faster when Modi paired with positive words.'
-      : 'Somewhat faster when Modi paired with positive words.';
-  } else if (dScore < -0.15) {
-    interpretation = `${strength} automatic preference for Manmohan + Positive`;
-    explanation = dScore < -0.35 
-      ? 'Noticeably faster when Manmohan paired with positive words.'
-      : 'Somewhat faster when Manmohan paired with positive words.';
-  }
-  
-  // Create comprehensive summary CSV
-  const summaryCSV = createSummaryCSV(PID, dScore, interpretation, accuracy, meanRT, total, meanComp, meanIncomp);
-  
-  // Create full trial-by-trial CSV with demographics
-  const fullCSV = createFullCSV(iatData);
-  
-  EXPERIMENT_DATA = {
-    id: PID,
-    date: new Date().toLocaleString(),
-    device: IS_MOBILE ? 'Mobile' : 'Desktop',
-    counterbalance: COUNTERBALANCE_ORDER,
-    trials: total,
-    accuracy: accuracy + '%',
-    rt: meanRT + 'ms',
-    dscore: dScore.toFixed(3),
-    result: interpretation,
-    explanation: explanation,
-    summaryCSV: summaryCSV,
-    fullCSV: fullCSV
-  };
-  
-  console.log('✅ DATA READY');
-  console.log('D-Score:', dScore.toFixed(3));
-  console.log('Interpretation:', interpretation);
-  
-  showResults();
-}
-
-function createSummaryCSV(pid, dscore, interp, acc, rt, trials, rtComp, rtIncomp) {
-  let csv = 'participant_id,date_time,device,counterbalance_order,age,gender,religion,caste,education,occupation,income,';
-  csv += 'political_orientation,state,rural_urban,language,media_consumption,';
-  csv += 'd_score,interpretation,accuracy_percent,mean_rt_ms,total_trials,rt_compatible_ms,rt_incompatible_ms,';
-  csv += 'preference_modi,preference_manmohan,awareness_bias,thermometer_modi,thermometer_manmohan,voted_2024\n';
-  
-  csv += `"${pid}","${new Date().toISOString()}","${IS_MOBILE ? 'Mobile' : 'Desktop'}","${COUNTERBALANCE_ORDER}",`;
-  csv += `"${DEMOGRAPHIC_DATA.age || 'NA'}","${DEMOGRAPHIC_DATA.gender || 'NA'}","${DEMOGRAPHIC_DATA.religion || 'NA'}",`;
-  csv += `"${DEMOGRAPHIC_DATA.caste || 'NA'}","${DEMOGRAPHIC_DATA.education || 'NA'}","${DEMOGRAPHIC_DATA.occupation || 'NA'}",`;
-  csv += `"${DEMOGRAPHIC_DATA.income || 'NA'}","${DEMOGRAPHIC_DATA.political || 'NA'}","${DEMOGRAPHIC_DATA.state || 'NA'}",`;
-  csv += `"${DEMOGRAPHIC_DATA.location || 'NA'}","${DEMOGRAPHIC_DATA.language || 'NA'}","${DEMOGRAPHIC_DATA.media || 'NA'}",`;
-  csv += `${dscore.toFixed(3)},"${interp}",${acc},${rt},${trials},${rtComp.toFixed(0)},${rtIncomp.toFixed(0)},`;
-  csv += `"${POST_TEST_DATA.preference_modi || 'NA'}","${POST_TEST_DATA.preference_manmohan || 'NA'}",`;
-  csv += `"${POST_TEST_DATA.awareness || 'NA'}","${POST_TEST_DATA.thermo_modi || 'NA'}","${POST_TEST_DATA.thermo_manmohan || 'NA'}",`;
-  csv += `"${POST_TEST_DATA.voted || 'NA'}"\n`;
-  
-  return csv;
-}
-
-function createFullCSV(iatData) {
-  let csv = 'participant_id,trial_number,block,block_number,stimulus_type,stimulus,correct_response,user_response,correct,rt_ms,';
-  csv += 'age,gender,religion,caste,education,occupation,income,political_orientation,state,rural_urban,language,media_consumption,';
-  csv += 'counterbalance_order,timestamp\n';
-  
-  const trials = iatData.values();
-  trials.forEach((trial, idx) => {
-    csv += `"${PID}",${idx + 1},"${trial.block}","${trial.block_number || 'NA'}","${trial.type}","${trial.stimulus}",`;
-    csv += `"${trial.stim_key_association}","${trial.response}",${trial.correct ? 'TRUE' : 'FALSE'},${trial.rt},`;
-    csv += `"${DEMOGRAPHIC_DATA.age || 'NA'}","${DEMOGRAPHIC_DATA.gender || 'NA'}","${DEMOGRAPHIC_DATA.religion || 'NA'}",`;
-    csv += `"${DEMOGRAPHIC_DATA.caste || 'NA'}","${DEMOGRAPHIC_DATA.education || 'NA'}","${DEMOGRAPHIC_DATA.occupation || 'NA'}",`;
-    csv += `"${DEMOGRAPHIC_DATA.income || 'NA'}","${DEMOGRAPHIC_DATA.political || 'NA'}","${DEMOGRAPHIC_DATA.state || 'NA'}",`;
-    csv += `"${DEMOGRAPHIC_DATA.location || 'NA'}","${DEMOGRAPHIC_DATA.language || 'NA'}","${DEMOGRAPHIC_DATA.media || 'NA'}",`;
-    csv += `"${COUNTERBALANCE_ORDER}","${trial.timestamp}"\n`;
-  });
-  
-  return csv;
-}
-
-function showResults() {
-  document.getElementById('experiment').innerHTML = `
-    <div class="page-container">
-      <div class="content-card">
-        <div class="header-accent"></div>
-        <h1>Experiment Complete</h1>
-        <p style="font-size: clamp(16px, 2.4vh, 19px); color: var(--text-medium);">Thank you for participating in this research study. Your contribution is valuable to understanding political attitudes.</p>
-        
-        <div class="info-box success">
-          <strong>✓ Data Processed Successfully</strong><br>
-          Your responses have been compiled and are ready for download.
-        </div>
-        
-        <div class="result-grid">
-          <div class="result-item">
-            <span class="result-label">Participant ID</span>
-            <span class="result-value">${EXPERIMENT_DATA.id}</span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">Completion Time</span>
-            <span class="result-value">${EXPERIMENT_DATA.date}</span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">Device Type</span>
-            <span class="result-value">${EXPERIMENT_DATA.device}</span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">Counterbalance Order</span>
-            <span class="result-value">${EXPERIMENT_DATA.counterbalance}</span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">Total Trials</span>
-            <span class="result-value">${EXPERIMENT_DATA.trials}</span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">Accuracy</span>
-            <span class="result-value">${EXPERIMENT_DATA.accuracy}</span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">Average Response Time</span>
-            <span class="result-value">${EXPERIMENT_DATA.rt}</span>
-          </div>
-        </div>
-        
-        <div class="result-highlight">
-          <div style="margin-bottom: 8px; font-size: clamp(14px, 2.1vh, 17px); opacity: 0.8;">IAT D-Score</div>
-          <div style="font-size: clamp(24px, 4vh, 32px); font-family: 'DM Serif Display', serif;">${EXPERIMENT_DATA.dscore}</div>
-          <div style="margin-top: 8px; font-size: clamp(15px, 2.3vh, 18px);">${EXPERIMENT_DATA.result}</div>
-          <div style="margin-top: 12px; font-size: clamp(14px, 2.1vh, 16px); font-weight: 400; opacity: 0.8;">${EXPERIMENT_DATA.explanation}</div>
-        </div>
-        
-        <div class="info-box">
-          <strong>📊 Understanding Your Results</strong><br>
-          The D-score measures the strength of automatic associations. Scores range from -2 to +2, with:<br>
-          • |D| < 0.15: Little to no preference<br>
-          • 0.15 ≤ |D| < 0.35: Slight preference<br>
-          • 0.35 ≤ |D| < 0.65: Moderate preference<br>
-          • |D| ≥ 0.65: Strong preference
-        </div>
-        
-        <div class="info-box">
-          <strong>📊 Two Data Files Available</strong><br>
-          <strong>Summary CSV:</strong> One comprehensive row with all results and demographics<br>
-          <strong>Full CSV:</strong> Detailed trial-by-trial data with complete information
-        </div>
-        
-        <div class="info-box warning">
-          <strong>⚠ Important: Please Download Your Data</strong><br>
-          Download both files and send them to the researcher. Your data is stored locally and will be lost when you close this page.
-        </div>
-        
-        <button class="primary-btn secondary-btn" onclick="downloadBoth()">📥 Download Both Files</button>
-        <button class="primary-btn" onclick="downloadSummary()">Download Summary CSV Only</button>
-        <button class="primary-btn" onclick="downloadCSV()">Download Full Data CSV Only</button>
-      </div>
-    </div>
-  `;
-}
-
-// ===========================================
-// TRIAL CREATION FUNCTIONS
-// Per Greenwald et al. (1998, 2003) and Nosek et al. (2005)
-// ===========================================
-function blockIntro(title, left, right, reversed, blockNum) {
-  return {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: `
-      <div class="page-container">
-        <div class="content-card">
-          <div class="header-accent"></div>
-          <h2>${title}</h2>
-          <p style="font-size: clamp(15px, 2.2vh, 18px); margin-bottom: 20px;">Block ${blockNum} of 7</p>
-          ${reversed ? '<div class="info-box warning"><strong>⚠ Categories Switched</strong><br>Pay attention to the new category positions!</div>' : ''}
-          <div class="category-grid">
-            <div class="category-pill">E = ${left}</div>
-            <div class="category-pill">I = ${right}</div>
-          </div>
-          <p style="text-align: center; font-size: clamp(16px, 2.5vh, 19px); color: var(--text-dark); margin-top: 32px;">
-            ${IS_MOBILE ? '<strong>Tap START below to begin ↓</strong>' : '<strong>Press SPACE to begin</strong>'}
-          </p>
-        </div>
-      </div>
-    `,
-    choices: [' '],
-    data: { block_number: blockNum, phase: 'instruction' },
-    on_load: function() {
-      if (IS_MOBILE) setupControls('single', 'START');
-    },
-    on_finish: function() {
-      hideControls();
-    }
-  };
-}
-
-function createCombinedTrials(imgArray, wordArray, imgSide, wordSide, block, blockNum, lCat, rCat, lShort, rShort, isCritical) {
-  const trials = [];
-  const numPairs = Math.max(imgArray.length, wordArray.length);
-  
-  // Create alternating image-word trials
-  for (let i = 0; i < numPairs; i++) {
-    const imgIdx = i % imgArray.length;
-    const wordIdx = i % wordArray.length;
-    
-    // Image trial
-    trials.push({
-      type: jsPsychIatImage,
-      stimulus: imgArray[imgIdx],
-      stim_key_association: imgSide,
-      html_when_wrong: '<span class="error-mark">✕</span>',
-      bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
-      force_correct_key_press: true,
-      display_feedback: true,
-      feedback_duration: 1000,
-      trial_duration: 3000,
-      left_category_key: 'e',
-      right_category_key: 'i',
-      left_category_label: lCat.split('/'),
-      right_category_label: rCat.split('/'),
-      response_ends_trial: true,
-      data: {block: block, block_number: blockNum, type: 'image', critical: isCritical || false, stimulus: imgArray[imgIdx]},
-      on_load: function() {
-        if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
-      }
-    });
-    
-    // Word trial
-    trials.push({
-      type: jsPsychIatHtml,
-      stimulus: wordArray[wordIdx],
-      stim_key_association: wordSide,
-      html_when_wrong: '<span class="error-mark">✕</span>',
-      bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
-      force_correct_key_press: true,
-      display_feedback: true,
-      feedback_duration: 1000,
-      trial_duration: 3000,
-      left_category_key: 'e',
-      right_category_key: 'i',
-      left_category_label: lCat.split('/'),
-      right_category_label: rCat.split('/'),
-      response_ends_trial: true,
-      data: {block: block, block_number: blockNum, type: 'word', critical: isCritical || false, stimulus: wordArray[wordIdx]},
-      on_load: function() {
-        if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
-      }
-    });
-  }
-  
-  return trials;
-}
-
-// ===========================================
-// TIMELINE CONSTRUCTION
-// Based on standard 7-block IAT procedure (Greenwald et al., 1998)
-// ===========================================
-const timeline = [];
-
-// WELCOME
-timeline.push({
-  type: jsPsychHtmlKeyboardResponse,
-  stimulus: `
-    <div class="page-container">
-      <div class="content-card">
-        <div class="header-accent"></div>
-        <h1>Prime Minister's Popularity Study</h1>
-        <h2 style="margin-bottom: 24px;">Implicit Association Test</h2>
-        
-        <div class="info-box">
-          <strong>Research Purpose</strong><br>
-          This study examines automatic associations between political figures and positive/negative concepts. You will categorize photos of Mr. Narendra Modi and Dr. Manmohan Singh, along with positive and negative words.
-        </div>
-        
-        <h3>What You'll Do</h3>
-        <ul>
-          <li><strong>Part 1:</strong> Answer demographic questions (12 questions, ~3 minutes)</li>
-          <li><strong>Part 2:</strong> Complete categorization tasks with images and words (~8 minutes)</li>
-          <li><strong>Part 3:</strong> Answer follow-up questions about your attitudes (~2 minutes)</li>
-        </ul>
-        
-        <div class="info-box warning">
-          <strong>Time Required:</strong> Approximately 12-15 minutes<br>
-          <strong>Confidentiality:</strong> All responses are anonymous and stored locally<br>
-          ${IS_MOBILE ? '<strong>Device:</strong> Please keep your device in landscape orientation' : '<strong>Requirements:</strong> Use keyboard for responses (E, I, and Space keys)'}
-        </div>
-        
-        <div class="info-box">
-          <strong>Important Notes</strong><br>
-          • Respond as quickly as possible while staying accurate<br>
-          • If you make a mistake, a red X will appear - just press the correct key<br>
-          • There are no "right" or "wrong" answers - respond based on your first instinct
-        </div>
-        
-        <p style="text-align: center; font-size: clamp(17px, 2.6vh, 20px); color: var(--primary); margin-top: 40px; font-weight: 600;">
-          ${IS_MOBILE ? 'Tap CONTINUE below to begin ↓' : 'Press any key to begin'}
-        </p>
-      </div>
-    </div>
-  `,
-  on_load: function() {
-    if (IS_MOBILE) setupControls('single', 'CONTINUE');
-  },
-  on_finish: function() {
-    hideControls();
-  }
-});
-
-// DEMOGRAPHICS
-timeline.push({
-  type: jsPsychSurveyHtmlForm,
-  preamble: `
-    <div class="header-accent"></div>
-    <h1>Part 1: Background Information</h1>
-    <p style="font-size: clamp(15px, 2.2vh, 18px); color: var(--text-medium); margin-bottom: 24px;">Please provide some information about yourself. All responses are confidential and used only for research purposes.</p>
-  `,
-  html: `
-    <div class="form-section">
-      <label class="form-label">1. What is your age?</label>
-      <input type="number" name="age" min="18" max="100" required>
-    </div>
-    
-    <div class="form-section">
-      <label class="form-label">2. What is your gender?</label>
-      <label><input type="radio" name="gender" value="Male" required> Male</label>
-      <label><input type="radio" name="gender" value="Female" required> Female</label>
-      <label><input type="radio" name="gender" value="Non-binary" required> Non-binary</label>
-      <label><input type="radio" name="gender" value="Other" required> Other</label>
-      <label><input type="radio" name="gender" value="Prefer not to say" required> Prefer not to say</label>
-    </div>
-    
-    <div class="form-section">
-      <label class="form-label">3. What is your religion?</label>
-      <label><input type="radio" name="religion" value="Hindu" required> Hindu</label>
-      <label><input type="radio" name="religion" value="Muslim" required> Muslim</label>
-      <label><input type="radio" name="religion" value="Christian" required> Christian</label>
-      <label><input type="radio" name="religion" value="Sikh" required> Sikh</label>
-      <label><input type="radio" name="religion" value="Buddhist" required> Buddhist</label>
-      <label><input type="radio" name="religion" value="Jain" required> Jain</label>
-      <label><input type="radio" name="religion" value="Other" required> Other</label>
-      <label><input type="radio" name="religion" value="No religion" required> No religion</label>
-      <label><input type="radio" name="religion" value="Prefer not to say" required> Prefer not to say</label>
-    </div>
-    
-    <div class="form-section">
-      <label class="form-label">4. What is your caste category?</label>
-      <span class="form-sublabel">This information helps understand social diversity in attitudes</span>
-      <label><input type="radio" name="caste" value="General" required> General</label>
-      <label><input type="radio" name="caste" value="OBC" required> OBC (Other Backward Classes)</label>
-      <label><input type="radio" name="caste" value="SC" required> SC (Scheduled Caste)</label>
-      <label><input type="radio" name="caste" value="ST" required> ST (Scheduled Tribe)</label>
-      <label><input type="radio" name="caste" value="Prefer not to say" required> Prefer not to say</label>
-    </div>
-    
-    <div class="form-section">
-      <label class="form-label">5. What is your highest level of education?</label>
-      <label><input type="radio" name="education" value="Less than high school" required> Less than high school</label>
-      <label><input type="radio" name="education" value="High school graduate" required> High school graduate (10th or 12th)</label>
-      <label><input type="radio" name="education" value="Some college/Diploma" required> Some college or Diploma</label>
-      <label><input type="radio" name="education" value="Bachelor's degree" required> Bachelor's degree</label>
-      <label><input type="radio" name="education" value="Master's degree" required> Master's degree</label>
-      <label><input type="radio" name="education" value="Doctoral degree" required> Doctoral degree (PhD, MD, etc.)</label>
-    </div>
-    
-    <div class="form-section">
-      <label class="form-label">6. What is your primary occupation?</label>
-      <label><input type="radio" name="occupation" value="Student" required> Student</label>
-      <label><input type="radio" name="occupation" value="Government employee" required> Government employee</label>
-      <label><input type="radio" name="occupation" value="Private sector employee" required> Private sector employee</label>
-      <label><input type="radio" name="occupation" value="Self-employed/Business" required> Self-employed/Business owner</label>
-      <label><input type="radio" name="occupation" value="Homemaker" required> Homemaker</label>
-      <label><input type="radio" name="occupation" value="Retired" required> Retired</label>
-      <label><input type="radio" name="occupation" value="Unemployed" required> Unemployed</label>
-      <label><input type="radio" name="occupation" value="Other" required> Other</label>
-    </div>
-    
-    <div class="form-section">
-      <label class="form-label">7. What is your approximate monthly household income?</label>
-      <span class="form-sublabel">In Indian Rupees (₹)</span>
-      <label><input type="radio" name="income" value="Below 25,000" required> Below ₹25,000</label>
-      <label><input type="radio" name="income" value="25,000 - 50,000" required> ₹25,000 - ₹50,000</label>
-      <label><input type="radio" name="income" value="50,000 - 1,00,000" required> ₹50,000 - ₹1,00,000</label>
-      <label><input type="radio" name="income" value="1,00,000 - 2,00,000" required> ₹1,00,000 - ₹2,00,000</label>
-      <label><input type="radio" name="income" value="Above 2,00,000" required> Above ₹2,00,000</label>
-      <label><input type="radio" name="income" value="Prefer not to say" required> Prefer not to say</label>
-    </div>
-    
-    <div class="form-section">
-      <label class="form-label">8. How would you describe your political orientation?</label>
-      <label><input type="radio" name="political" value="Very liberal/Left-wing" required> Very liberal/Left-wing</label>
-      <label><input type="radio" name="political" value="Liberal/Center-left" required> Liberal/Center-left</label>
-      <label><input type="radio" name="political" value="Moderate/Centrist" required> Moderate/Centrist</label>
-      <label><input type="radio" name="political" value="Conservative/Center-right" required> Conservative/Center-right</label>
-      <label><input type="radio" name="political" value="Very conservative/Right-wing" required> Very conservative/Right-wing</label>
-      <label><input type="radio" name="political" value="No clear political leaning" required> No clear political leaning</label>
-    </div>
-    
-    <div class="form-section">
-      <label class="form-label">9. Which state or union territory do you currently reside in?</label>
-      <input type="text" name="state" required placeholder="e.g., Maharashtra, Delhi, Karnataka">
-    </div>
-    
-    <div class="form-section">
-      <label class="form-label">10. Where do you live?</label>
-      <label><input type="radio" name="location" value="Rural area" required> Rural area</label>
-      <label><input type="radio" name="location" value="Small town" required> Small town</label>
-      <label><input type="radio" name="location" value="City" required> City</label>
-      <label><input type="radio" name="location" value="Metro/Large city" required> Metro/Large city</label>
-    </div>
-    
-    <div class="form-section">
-      <label class="form-label">11. What is your primary language?</label>
-      <span class="form-sublabel">The language you use most often at home</span>
-      <input type="text" name="language" required placeholder="e.g., Hindi, Tamil, Bengali, English">
-    </div>
-    
-    <div class="form-section">
-      <label class="form-label">12. How often do you follow political news?</label>
-      <label><input type="radio" name="media" value="Daily" required> Daily</label>
-      <label><input type="radio" name="media" value="Several times a week" required> Several times a week</label>
-      <label><input type="radio" name="media" value="Once a week" required> Once a week</label>
-      <label><input type="radio" name="media" value="Rarely" required> Rarely</label>
-      <label><input type="radio" name="media" value="Never" required> Never</label>
-    </div>
-  `,
-  button_label: 'Continue to Task',
-  on_load: function() {
-    hideControls();
-  }
-});
-
-// IAT INSTRUCTIONS
-timeline.push({
-  type: jsPsychHtmlKeyboardResponse,
-  stimulus: `
-    <div class="page-container">
-      <div class="content-card">
-        <div class="header-accent"></div>
-        <h1>Part 2: Categorization Task</h1>
-        
-        <p style="font-size: clamp(15px, 2.2vh, 18px); margin-bottom: 24px;">In this task, you will categorize items as quickly as possible. You will see:</p>
-        
-        <ul>
-          <li>Photos of <strong>Narendra Modi</strong></li>
-          <li>Photos of <strong>Dr. Manmohan Singh</strong></li>
-          <li><strong>Positive words</strong> like "Triumph," "Joyous," "Beautiful"</li>
-          <li><strong>Negative words</strong> like "Disgust," "Hate," "Ugly"</li>
-        </ul>
-        
-        <div class="info-box">
-          <strong>Your Task</strong><br>
-          Sort each item into the correct category using the <strong>E</strong> and <strong>I</strong> keys (or buttons on mobile). Items will alternate: photo, word, photo, word...
-        </div>
-        
-        <div class="category-grid">
-          <div class="category-pill">E = Left Category</div>
-          <div class="category-pill">I = Right Category</div>
-        </div>
-        
-        <div class="info-box warning">
-          <strong>Important Guidelines</strong><br>
-          • Respond as <strong>quickly</strong> as possible while staying accurate<br>
-          • If you make a mistake, a large red <strong>✕</strong> will appear - simply press the correct key<br>
-          • Categories will <strong>switch</strong> partway through - pay attention!<br>
-          • There are no "right" or "wrong" answers - just respond based on your first instinct
-        </div>
-        
-        <p style="text-align: center; font-size: clamp(17px, 2.6vh, 20px); color: var(--primary); margin-top: 40px; font-weight: 600;">
-          ${IS_MOBILE ? 'Tap START below when ready ↓' : 'Press SPACE when ready to begin'}
-        </p>
-      </div>
-    </div>
-  `,
-  choices: [' '],
-  on_load: function() {
-    if (IS_MOBILE) setupControls('single', 'START');
-  },
-  on_finish: function() {
-    hideControls();
-  }
-});
-
-// ===========================================
-// STANDARD 7-BLOCK IAT PROCEDURE
-// Based on Greenwald et al. (1998, 2003) and Nosek et al. (2005)
-// ===========================================
-
-// Prepare stimulus arrays with randomization
-const allModiLeft = IMG_MODI.map(img => ({stim: img, side: 'left'}));
-const allModiRight = IMG_MODI.map(img => ({stim: img, side: 'right'}));
-const allManmohanLeft = IMG_MANMOHAN.map(img => ({stim: img, side: 'left'}));
-const allManmohanRight = IMG_MANMOHAN.map(img => ({stim: img, side: 'right'}));
-const allPosLeft = WORDS_POS.map(w => ({stim: w, side: 'left'}));
-const allPosRight = WORDS_POS.map(w => ({stim: w, side: 'right'}));
-const allNegLeft = WORDS_NEG.map(w => ({stim: w, side: 'left'}));
-const allNegRight = WORDS_NEG.map(w => ({stim: w, side: 'right'}));
-
-// Shuffle function
-function shuffle(array) {
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-// BLOCK 1: Initial Target Concept Discrimination (Modi vs Manmohan) - 20 trials
-timeline.push(blockIntro('Practice: Categorize Political Leaders', 'Modi', 'Manmohan', false, 1));
-timeline.push({
-  timeline: [{
-    type: jsPsychIatImage,
-    stimulus: jsPsych.timelineVariable('stim'),
-    stim_key_association: jsPsych.timelineVariable('side'),
-    html_when_wrong: '<span class="error-mark">✕</span>',
-    bottom_instructions: '<p>E = Modi | I = Manmohan</p>',
-    force_correct_key_press: true,
-    display_feedback: true,
-    feedback_duration: 1000,
-    trial_duration: 3000,
-    left_category_key: 'e',
-    right_category_key: 'i',
-    left_category_label: ['Modi'],
-    right_category_label: ['Manmohan'],
-    response_ends_trial: true,
-    data: {block: 'practice1', block_number: 1, type: 'image', critical: false},
-    on_load: function() {
-      if (IS_MOBILE) setupControls('double', {e: 'Modi', i: 'Manmohan'});
-    }
-  }],
-  timeline_variables: shuffle([...allModiLeft, ...allManmohanRight, ...allModiLeft, ...allManmohanRight]),
-  randomize_order: true
-});
-
-// BLOCK 2: Initial Attribute Discrimination (Positive vs Negative) - 20 trials
-timeline.push(blockIntro('Practice: Categorize Words', 'Positive', 'Negative', false, 2));
-timeline.push({
-  timeline: [{
-    type: jsPsychIatHtml,
-    stimulus: jsPsych.timelineVariable('stim'),
-    stim_key_association: jsPsych.timelineVariable('side'),
-    html_when_wrong: '<span class="error-mark">✕</span>',
-    bottom_instructions: '<p>E = Positive | I = Negative</p>',
-    force_correct_key_press: true,
-    display_feedback: true,
-    feedback_duration: 1000,
-    trial_duration: 3000,
-    left_category_key: 'e',
-    right_category_key: 'i',
-    left_category_label: ['Positive'],
-    right_category_label: ['Negative'],
-    response_ends_trial: true,
-    data: {block: 'practice2', block_number: 2, type: 'word', critical: false},
-    on_load: function() {
-      if (IS_MOBILE) setupControls('double', {e: 'Positive', i: 'Negative'});
-    }
-  }],
-  timeline_variables: shuffle([...allPosLeft, ...allNegRight, ...allPosLeft, ...allNegRight]),
-  randomize_order: true
-});
-
-// BLOCKS 3 & 4: Initial Combined Task (Compatible/Incompatible depending on counterbalance)
-// Block 3: Practice (20 trials), Block 4: Test (40 trials)
-if (COUNTERBALANCE_ORDER === 'compatible-first') {
-  // COMPATIBLE PAIRING FIRST: Modi+Positive vs Manmohan+Negative
-  
-  // BLOCK 3: Practice Combined - Modi/Positive (20 trials)
-  timeline.push(blockIntro('Practice: Combined Categories', 'Modi or Positive', 'Manmohan or Negative', false, 3));
-  timeline.push({
-    timeline: createCombinedTrials(
-      shuffle([...IMG_MODI, ...IMG_MODI]),
-      shuffle([...WORDS_POS, ...WORDS_POS]),
-      'left', 'left',
-      'practice3', 3,
-      'Modi/Positive', 'Manmohan/Negative',
-      'Modi/Pos', 'Man/Neg',
-      false
-    )
-  });
-  
-  // BLOCK 4: Critical Test - Modi/Positive (40 trials) *** CRITICAL BLOCK ***
-  timeline.push(blockIntro('Test: Combined Categories', 'Modi or Positive', 'Manmohan or Negative', false, 4));
-  timeline.push({
-    timeline: createCombinedTrials(
-      shuffle([...IMG_MODI, ...IMG_MODI, ...IMG_MODI, ...IMG_MODI]),
-      shuffle([...WORDS_POS, ...WORDS_POS, ...WORDS_POS, ...WORDS_POS]),
-      'left', 'left',
-      'compatible', 4,
-      'Modi/Positive', 'Manmohan/Negative',
-      'Modi/Pos', 'Man/Neg',
-      true // CRITICAL BLOCK
-    )
-  });
-  
-  // BLOCK 5: Reversed Target Discrimination (40 trials)
-  timeline.push(blockIntro('Practice: Categorize Political Leaders', 'Manmohan', 'Modi', true, 5));
-  timeline.push({
-    timeline: [{
-      type: jsPsychIatImage,
-      stimulus: jsPsych.timelineVariable('stim'),
-      stim_key_association: jsPsych.timelineVariable('side'),
-      html_when_wrong: '<span class="error-mark">✕</span>',
-      bottom_instructions: '<p>E = Manmohan | I = Modi</p>',
-      force_correct_key_press: true,
-      display_feedback: true,
-      feedback_duration: 1000,
-      trial_duration: 3000,
-      left_category_key: 'e',
-      right_category_key: 'i',
-      left_category_label: ['Manmohan'],
-      right_category_label: ['Modi'],
-      response_ends_trial: true,
-      data: {block: 'practice4', block_number: 5, type: 'image', critical: false},
-      on_load: function() {
-        if (IS_MOBILE) setupControls('double', {e: 'Manmohan', i: 'Modi'});
-      }
-    }],
-    timeline_variables: shuffle([...allManmohanLeft, ...allModiRight, ...allManmohanLeft, ...allModiRight, ...allManmohanLeft, ...allModiRight]),
-    randomize_order: true
-  });
-  
-  // BLOCK 6: Practice Reversed Combined - Manmohan/Positive (20 trials)
-  timeline.push(blockIntro('Practice: Combined Categories', 'Manmohan or Positive', 'Modi or Negative', false, 6));
-  timeline.push({
-    timeline: createCombinedTrials(
-      shuffle([...IMG_MANMOHAN, ...IMG_MANMOHAN]),
-      shuffle([...WORDS_POS, ...WORDS_POS]),
-      'left', 'left',
-      'practice5', 6,
-      'Manmohan/Positive', 'Modi/Negative',
-      'Man/Pos', 'Modi/Neg',
-      false
-    )
-  });
-  
-  // BLOCK 7: Critical Test Reversed - Manmohan/Positive (40 trials) *** CRITICAL BLOCK ***
-  timeline.push(blockIntro('Test: Combined Categories', 'Manmohan or Positive', 'Modi or Negative', false, 7));
-  timeline.push({
-    timeline: createCombinedTrials(
-      shuffle([...IMG_MANMOHAN, ...IMG_MANMOHAN, ...IMG_MANMOHAN, ...IMG_MANMOHAN]),
-      shuffle([...WORDS_POS, ...WORDS_POS, ...WORDS_POS, ...WORDS_POS]),
-      'left', 'left',
-      'incompatible', 7,
-      'Manmohan/Positive', 'Modi/Negative',
-      'Man/Pos', 'Modi/Neg',
-      true // CRITICAL BLOCK
-    )
-  });
-  
-} else {
-  // INCOMPATIBLE PAIRING FIRST: Manmohan+Positive vs Modi+Negative
-  
-  // BLOCK 3: Practice Combined - Manmohan/Positive (20 trials)
-  timeline.push(blockIntro('Practice: Combined Categories', 'Manmohan or Positive', 'Modi or Negative', false, 3));
-  timeline.push({
-    timeline: createCombinedTrials(
-      shuffle([...IMG_MANMOHAN, ...IMG_MANMOHAN]),
-      shuffle([...WORDS_POS, ...WORDS_POS]),
-      'left', 'left',
-      'practice3', 3,
-      'Manmohan/Positive', 'Modi/Negative',
-      'Man/Pos', 'Modi/Neg',
-      false
-    )
-  });
-  
-  // BLOCK 4: Critical Test - Manmohan/Positive (40 trials) *** CRITICAL BLOCK ***
-  timeline.push(blockIntro('Test: Combined Categories', 'Manmohan or Positive', 'Modi or Negative', false, 4));
-  timeline.push({
-    timeline: createCombinedTrials(
-      shuffle([...IMG_MANMOHAN, ...IMG_MANMOHAN, ...IMG_MANMOHAN, ...IMG_MANMOHAN]),
-      shuffle([...WORDS_POS, ...WORDS_POS, ...WORDS_POS, ...WORDS_POS]),
-      'left', 'left',
-      'incompatible', 4,
-      'Manmohan/Positive', 'Modi/Negative',
-      'Man/Pos', 'Modi/Neg',
-      true // CRITICAL BLOCK
-    )
-  });
-  
-  // BLOCK 5: Reversed Target Discrimination (40 trials)
-  timeline.push(blockIntro('Practice: Categorize Political Leaders', 'Modi', 'Manmohan', true, 5));
-  timeline.push({
-    timeline: [{
-      type: jsPsychIatImage,
-      stimulus: jsPsych.timelineVariable('stim'),
-      stim_key_association: jsPsych.timelineVariable('side'),
-      html_when_wrong: '<span class="error-mark">✕</span>',
-      bottom_instructions: '<p>E = Modi | I = Manmohan</p>',
-      force_correct_key_press: true,
-      display_feedback: true,
-      feedback_duration: 1000,
-      trial_duration: 3000,
-      left_category_key: 'e',
-      right_category_key: 'i',
-      left_category_label: ['Modi'],
-      right_category_label: ['Manmohan'],
-      response_ends_trial: true,
-      data: {block: 'practice4', block_number: 5, type: 'image', critical: false},
-      on_load: function() {
-        if (IS_MOBILE) setupControls('double', {e: 'Modi', i: 'Manmohan'});
-      }
-    }],
-    timeline_variables: shuffle([...allModiLeft, ...allManmohanRight, ...allModiLeft, ...allManmohanRight, ...allModiLeft, ...allManmohanRight]),
-    randomize_order: true
-  });
-  
-  // BLOCK 6: Practice Combined - Modi/Positive (20 trials)
-  timeline.push(blockIntro('Practice: Combined Categories', 'Modi or Positive', 'Manmohan or Negative', false, 6));
-  timeline.push({
-    timeline: createCombinedTrials(
-      shuffle([...IMG_MODI, ...IMG_MODI]),
-      shuffle([...WORDS_POS, ...WORDS_POS]),
-      'left', 'left',
-      'practice5', 6,
-      'Modi/Positive', 'Manmohan/Negative',
-      'Modi/Pos', 'Man/Neg',
-      false
-    )
-  });
-  
-  // BLOCK 7: Critical Test - Modi/Positive (40 trials) *** CRITICAL BLOCK ***
-  timeline.push(blockIntro('Test: Combined Categories', 'Modi or Positive', 'Manmohan or Negative', false, 7));
-  timeline.push({
-    timeline: createCombinedTrials(
-      shuffle([...IMG_MODI, ...IMG_MODI, ...IMG_MODI, ...IMG_MODI]),
-      shuffle([...WORDS_POS, ...WORDS_POS, ...WORDS_POS, ...WORDS_POS]),
-      'left', 'left',
-      'compatible', 7,
-      'Modi/Positive', 'Manmohan/Negative',
-      'Modi/Pos', 'Man/Neg',
-      true // CRITICAL BLOCK
-    )
-  });
-}
-
-// POST-TEST INTRO
-timeline.push({
-  type: jsPsychHtmlKeyboardResponse,
-  stimulus: `
-    <div class="page-container">
-      <div class="content-card">
-        <div class="header-accent"></div>
-        <h1>Part 3: Follow-Up Questions</h1>
-        <p style="font-size: clamp(16px, 2.4vh, 19px);">You're almost done! Just a few more questions about your attitudes and experiences.</p>
-        <p style="text-align: center; font-size: clamp(17px, 2.6vh, 20px); color: var(--primary); margin-top: 40px; font-weight: 600;">
-          ${IS_MOBILE ? 'Tap CONTINUE below ↓' : 'Press any key to continue'}
-        </p>
-      </div>
-    </div>
-  `,
-  on_load: function() {
-    if (IS_MOBILE) setupControls('single', 'CONTINUE');
-  },
-  on_finish: function() {
-    hideControls();
-  }
-});
-
-// POST-TEST MEASURES
-timeline.push({
-  type: jsPsychSurveyMultiChoice,
-  preamble: '<div class="header-accent"></div><h2>Explicit Preferences</h2>',
-  questions: [
-    {
-      prompt: "Which statement best describes your feelings toward Narendra Modi?",
-      name: 'preference_modi',
-      options: [
-        'I strongly prefer Modi over Manmohan Singh',
-        'I moderately prefer Modi over Manmohan Singh',
-        'I slightly prefer Modi over Manmohan Singh',
-        'I like Modi and Manmohan Singh equally',
-        'I slightly prefer Manmohan Singh over Modi',
-        'I moderately prefer Manmohan Singh over Modi',
-        'I strongly prefer Manmohan Singh over Modi'
-      ],
-      required: true
-    }
-  ],
-  data: {phase: 'post_test'},
-  on_load: function() {
-    hideControls();
-  }
-});
-
-timeline.push({
-  type: jsPsychSurveyMultiChoice,
-  preamble: '<div class="header-accent"></div>',
-  questions: [
-    {
-      prompt: "Which statement best describes your feelings toward Dr. Manmohan Singh?",
-      name: 'preference_manmohan',
-      options: [
-        'I strongly prefer Manmohan Singh over Modi',
-        'I moderately prefer Manmohan Singh over Modi',
-        'I slightly prefer Manmohan Singh over Modi',
-        'I like Manmohan Singh and Modi equally',
-        'I slightly prefer Modi over Manmohan Singh',
-        'I moderately prefer Modi over Manmohan Singh',
-        'I strongly prefer Modi over Manmohan Singh'
-      ],
-      required: true
-    }
-  ],
-  data: {phase: 'post_test'},
-  on_load: function() {
-    hideControls();
-  }
-});
-
-timeline.push({
-  type: jsPsychSurveyLikert,
-  preamble: '<div class="header-accent"></div><h2>Feeling Thermometer</h2><p style="margin-bottom: 20px;">Rate your feelings on a scale from 0 (very unfavorable) to 10 (very favorable)</p>',
-  questions: [
-    {
-      prompt: "How would you rate Narendra Modi?",
-      name: 'thermo_modi',
-      labels: ['0<br>Very<br>Unfavorable', '1', '2', '3', '4', '5<br>Neutral', '6', '7', '8', '9', '10<br>Very<br>Favorable'],
-      required: true
-    }
-  ],
-  data: {phase: 'post_test'},
-  on_load: function() {
-    hideControls();
-  }
-});
-
-timeline.push({
-  type: jsPsychSurveyLikert,
-  preamble: '<div class="header-accent"></div>',
-  questions: [
-    {
-      prompt: "How would you rate Dr. Manmohan Singh?",
-      name: 'thermo_manmohan',
-      labels: ['0<br>Very<br>Unfavorable', '1', '2', '3', '4', '5<br>Neutral', '6', '7', '8', '9', '10<br>Very<br>Favorable'],
-      required: true
-    }
-  ],
-  data: {phase: 'post_test'},
-  on_load: function() {
-    hideControls();
-  }
-});
-
-timeline.push({
-  type: jsPsychSurveyMultiChoice,
-  preamble: '<div class="header-accent"></div><h2>Self-Awareness</h2>',
-  questions: [
-    {
-      prompt: "Before participating in this study, how aware were you that you might have automatic preferences between these political figures?",
-      name: 'awareness',
-      options: [
-        'Very aware - I knew I had strong automatic preferences',
-        'Somewhat aware - I suspected I might have some preferences',
-        'A little aware - I had not thought about it much',
-        'Not at all aware - This is new to me'
-      ],
-      required: true
-    }
-  ],
-  data: {phase: 'post_test'},
-  on_load: function() {
-    hideControls();
-  }
-});
-
-timeline.push({
-  type: jsPsychSurveyMultiChoice,
-  preamble: '<div class="header-accent"></div>',
-  questions: [
-    {
-      prompt: "Did you vote in the 2024 Lok Sabha elections?",
-      name: 'voted',
-      options: [
-        'Yes, I voted',
-        'No, I did not vote',
-        'I was not eligible to vote',
-        'Prefer not to say'
-      ],
-      required: true
-    }
-  ],
-  data: {phase: 'post_test'},
-  on_load: function() {
-    hideControls();
-  }
-});
-
-timeline.push({
-  type: jsPsychHtmlKeyboardResponse,
-  stimulus: `
-    <div class="page-container">
-      <div class="content-card">
-        <div class="header-accent"></div>
-        <h1>Processing Your Results</h1>
-        <div style="text-align: center; padding: 40px 0;">
-          <div style="font-size: clamp(18px, 3vh, 24px); color: var(--text-medium); margin-bottom: 20px;">
-            Please wait a moment while we compile your data...
-          </div>
-          <div style="width: 60px; height: 60px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite;"></div>
-        </div>
-      </div>
-    </div>
-    <style>
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-    </style>
-  `,
-  trial_duration: 2000,
-  response_ends_trial: false,
-  on_load: function() {
-    hideControls();
-  }
-});
-
-console.log('🚀 STARTING EXPERIMENT');
-jsPsych.run(timeline);
-</script>
 </html>
