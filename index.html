@@ -36,6 +36,7 @@
       --border: #e8e5de;
       --shadow: rgba(26, 71, 42, 0.08);
       --shadow-lg: rgba(26, 71, 42, 0.15);
+      --error-red: #e74c3c;
     }
     
     * {
@@ -477,7 +478,7 @@
       box-shadow: 0 6px 24px var(--shadow-lg) !important;
     }
     
-    /* TRIAL DISPLAY */
+    /* TRIAL DISPLAY - IMPROVED */
     .jspsych-iat-stim {
       font-size: clamp(44px, 7.5vh, 68px) !important;
       font-weight: 700 !important;
@@ -487,11 +488,18 @@
       padding: 0 3vw !important;
       font-family: 'DM Serif Display', serif !important;
       letter-spacing: -0.02em !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 35vh !important;
     }
     
     .jspsych-iat-stim img {
-      max-width: 50vw !important;
-      max-height: 40vh !important;
+      max-width: min(45vw, 600px) !important;
+      max-height: 35vh !important;
+      width: auto !important;
+      height: auto !important;
+      object-fit: contain !important;
       border-radius: 12px;
       display: block !important;
       margin: 0 auto !important;
@@ -499,14 +507,22 @@
       border: 3px solid var(--border);
     }
     
+    /* ERROR FEEDBACK - MUCH MORE VISIBLE */
     .error-mark {
-      color: #e74c3c !important;
-      font-size: clamp(72px, 14vh, 120px) !important;
+      color: var(--error-red) !important;
+      font-size: clamp(96px, 18vh, 160px) !important;
       font-weight: 900 !important;
       display: block !important;
-      margin: 4vh auto !important;
+      margin: 6vh auto !important;
       text-align: center !important;
       line-height: 1 !important;
+      text-shadow: 0 4px 12px rgba(231, 76, 60, 0.3) !important;
+      animation: errorPulse 0.4s ease-out !important;
+    }
+    
+    @keyframes errorPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
     }
     
     .jspsych-iat-category {
@@ -641,6 +657,60 @@ const IMG_MODI = ['imagesmodi1.jpg.jpeg', 'imagesmodi2.jpg.jpeg', 'imagesmodi3.j
 const IMG_MANMOHAN = ['imagesprevious1.jpg.jpeg', 'imagesprevious2.jpg.jpeg', 'imagesprevious3.jpg.jpeg', 'imagesprevious4.jpg.jpeg'];
 const WORDS_POS = ['Lovely', 'Joyous', 'Pleasing', 'Glorious', 'Delightful', 'Beautiful', 'Enjoy', 'Spectacular'];
 const WORDS_NEG = ['Pain', 'Yucky', 'Failure', 'Disgust', 'Humiliate', 'Tragic', 'Rotten', 'Annoy'];
+
+// ===========================================
+// CRITICAL: ALTERNATING STIMULUS FUNCTION
+// ===========================================
+function createAlternatingTrials(imgArray, wordArray, imgSide, wordSide, block, lCat, rCat, lShort, rShort, isCritical) {
+  const trials = [];
+  const maxPairs = Math.min(imgArray.length, wordArray.length);
+  
+  for (let i = 0; i < maxPairs; i++) {
+    // Image trial
+    trials.push({
+      type: jsPsychIatImage,
+      stimulus: imgArray[i],
+      stim_key_association: imgSide,
+      html_when_wrong: '<span class="error-mark">✕</span>',
+      bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
+      force_correct_key_press: true,
+      display_feedback: true,
+      trial_duration: 3000,
+      left_category_key: 'e',
+      right_category_key: 'i',
+      left_category_label: lCat.split('/'),
+      right_category_label: rCat.split('/'),
+      response_ends_trial: true,
+      data: {block: block, type: 'image', critical: isCritical || false, stimulus: imgArray[i]},
+      on_load: function() {
+        if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
+      }
+    });
+    
+    // Word trial
+    trials.push({
+      type: jsPsychIatHtml,
+      stimulus: wordArray[i],
+      stim_key_association: wordSide,
+      html_when_wrong: '<span class="error-mark">✕</span>',
+      bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
+      force_correct_key_press: true,
+      display_feedback: true,
+      trial_duration: 3000,
+      left_category_key: 'e',
+      right_category_key: 'i',
+      left_category_label: lCat.split('/'),
+      right_category_label: rCat.split('/'),
+      response_ends_trial: true,
+      data: {block: block, type: 'word', critical: isCritical || false, stimulus: wordArray[i]},
+      on_load: function() {
+        if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
+      }
+    });
+  }
+  
+  return trials;
+}
 
 // ===========================================
 // KEY PRESS FUNCTION
@@ -1042,17 +1112,17 @@ timeline.push({
     <div class="page-container">
       <div class="content-card">
         <div class="header-accent"></div>
-        <h1>Political Attitudes Study</h1>
+        <h1>Prime Minister's Popularity Study</h1>
         <h2 style="margin-bottom: 24px;">Implicit Association Test</h2>
         
         <div class="info-box">
           <strong>Research Purpose</strong><br>
-          This study examines automatic associations between political figures and positive/negative concepts. Your participation helps us understand implicit attitudes in Indian politics.
+          This study examines automatic associations between political figures and positive/negative concepts. You will categorize photos of Mr. Narendra Modi and Dr. Manmohan Singh, along with positive and negative words.
         </div>
         
         <h3>What You'll Do</h3>
         <ul>
-          <li><strong>Part 1:</strong> Answer demographic questions (10 questions)</li>
+          <li><strong>Part 1:</strong> Answer demographic questions (12 questions)</li>
           <li><strong>Part 2:</strong> Complete categorization tasks with images and words</li>
           <li><strong>Part 3:</strong> Answer follow-up questions about your attitudes</li>
         </ul>
@@ -1220,7 +1290,7 @@ timeline.push({
         
         <div class="info-box">
           <strong>Your Task</strong><br>
-          Sort each item into the correct category using the <strong>E</strong> and <strong>I</strong> keys (or buttons on mobile).
+          Sort each item into the correct category using the <strong>E</strong> and <strong>I</strong> keys (or buttons on mobile). Items will alternate: photo, word, photo, word...
         </div>
         
         <div class="category-grid">
@@ -1231,7 +1301,7 @@ timeline.push({
         <div class="info-box warning">
           <strong>Important Guidelines</strong><br>
           • Respond as <strong>quickly</strong> as possible while staying accurate<br>
-          • If you make a mistake, an <strong>✕</strong> will appear - simply press the correct key<br>
+          • If you make a mistake, a large red <strong>✕</strong> will appear - simply press the correct key<br>
           • Categories will <strong>switch</strong> partway through - pay attention!<br>
           • There are no "right" or "wrong" answers - just respond based on your first instinct
         </div>
@@ -1251,7 +1321,7 @@ timeline.push({
   }
 });
 
-// BLOCK 1: Modi vs Manmohan
+// BLOCK 1: Modi vs Manmohan (Practice)
 timeline.push(blockIntro('Practice: Categorize Political Leaders', 'Modi', 'Manmohan', false));
 timeline.push({
   timeline: [imgTrial('practice1', 'Modi', 'Manmohan', 'Modi', 'Manmohan')],
@@ -1263,7 +1333,7 @@ timeline.push({
   repetitions: 2
 });
 
-// BLOCK 2: Positive vs Negative
+// BLOCK 2: Positive vs Negative (Practice)
 timeline.push(blockIntro('Practice: Categorize Words', 'Positive', 'Negative', false));
 timeline.push({
   timeline: [wordTrial('practice2', 'Positive', 'Negative', 'Positive', 'Negative')],
@@ -1275,57 +1345,47 @@ timeline.push({
   repetitions: 1
 });
 
-// BLOCK 3: Combined Practice (Compatible)
+// BLOCK 3: Combined Practice (Compatible) - ALTERNATING
 timeline.push(blockIntro('Practice: Combined Categories', 'Modi or Positive', 'Manmohan or Negative', false));
+
+// Create alternating trials for practice
+const practice3Imgs = [...IMG_MODI, ...IMG_MODI].map(img => ({img, side: 'left'}))
+  .concat([...IMG_MANMOHAN, ...IMG_MANMOHAN].map(img => ({img, side: 'right'})));
+const practice3Words = [...WORDS_POS, ...WORDS_POS].map(w => ({w, side: 'left'}))
+  .concat([...WORDS_NEG, ...WORDS_NEG].map(w => ({w, side: 'right'})));
+
+// Shuffle
+const shuffledP3Imgs = practice3Imgs.sort(() => Math.random() - 0.5);
+const shuffledP3Words = practice3Words.sort(() => Math.random() - 0.5);
+
 timeline.push({
-  timeline: [
-    {
-      timeline: [imgTrial('practice3', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg')],
-      timeline_variables: [
-        ...IMG_MODI.map(img => ({stim: img, side: 'left'})),
-        ...IMG_MANMOHAN.map(img => ({stim: img, side: 'right'}))
-      ],
-      randomize_order: true
-    },
-    {
-      timeline: [wordTrial('practice3', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg')],
-      timeline_variables: [
-        ...WORDS_POS.map(w => ({stim: w, side: 'left'})),
-        ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
-      ],
-      randomize_order: true
-    }
-  ],
-  randomize_order: true,
-  repetitions: 1
+  timeline: createAlternatingTrials(
+    shuffledP3Imgs.slice(0, 4).map(x => x.img),
+    shuffledP3Words.slice(0, 4).map(x => x.w),
+    'left', 'left',
+    'practice3', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg', false
+  )
 });
 
-// BLOCK 4: CRITICAL Compatible
+// BLOCK 4: CRITICAL Compatible - STRICT ALTERNATION
+const comp4Imgs = [...IMG_MODI, ...IMG_MODI].map(img => ({img, side: 'left'}))
+  .concat([...IMG_MANMOHAN, ...IMG_MANMOHAN].map(img => ({img, side: 'right'})));
+const comp4Words = [...WORDS_POS, ...WORDS_POS].map(w => ({w, side: 'left'}))
+  .concat([...WORDS_NEG, ...WORDS_NEG].map(w => ({w, side: 'right'})));
+
+const shuffledC4Imgs = comp4Imgs.sort(() => Math.random() - 0.5);
+const shuffledC4Words = comp4Words.sort(() => Math.random() - 0.5);
+
 timeline.push({
-  timeline: [
-    {
-      timeline: [imgTrial('compatible', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg', true)],
-      timeline_variables: [
-        ...IMG_MODI.map(img => ({stim: img, side: 'left'})),
-        ...IMG_MANMOHAN.map(img => ({stim: img, side: 'right'}))
-      ],
-      randomize_order: true,
-      repetitions: 2
-    },
-    {
-      timeline: [wordTrial('compatible', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg', true)],
-      timeline_variables: [
-        ...WORDS_POS.map(w => ({stim: w, side: 'left'})),
-        ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
-      ],
-      randomize_order: true,
-      repetitions: 2
-    }
-  ],
-  randomize_order: true
+  timeline: createAlternatingTrials(
+    shuffledC4Imgs.map(x => x.img),
+    shuffledC4Words.map(x => x.w),
+    shuffledC4Imgs[0].side, shuffledC4Words[0].side,
+    'compatible', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg', true
+  )
 });
 
-// BLOCK 5: Reversed Leaders
+// BLOCK 5: Reversed Leaders (Practice)
 timeline.push(blockIntro('Practice: Categorize Political Leaders', 'Manmohan', 'Modi', true));
 timeline.push({
   timeline: [imgTrial('practice4', 'Manmohan', 'Modi', 'Manmohan', 'Modi')],
@@ -1337,54 +1397,42 @@ timeline.push({
   repetitions: 5
 });
 
-// BLOCK 6: Combined Practice (Incompatible)
+// BLOCK 6: Combined Practice (Incompatible) - ALTERNATING
 timeline.push(blockIntro('Practice: Combined Categories', 'Manmohan or Positive', 'Modi or Negative', false));
+
+const practice6Imgs = [...IMG_MODI].map(img => ({img, side: 'right'}))
+  .concat([...IMG_MANMOHAN].map(img => ({img, side: 'left'})));
+const practice6Words = [...WORDS_POS].map(w => ({w, side: 'left'}))
+  .concat([...WORDS_NEG].map(w => ({w, side: 'right'})));
+
+const shuffledP6Imgs = practice6Imgs.sort(() => Math.random() - 0.5);
+const shuffledP6Words = practice6Words.sort(() => Math.random() - 0.5);
+
 timeline.push({
-  timeline: [
-    {
-      timeline: [imgTrial('practice5', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg')],
-      timeline_variables: [
-        ...IMG_MODI.map(img => ({stim: img, side: 'right'})),
-        ...IMG_MANMOHAN.map(img => ({stim: img, side: 'left'}))
-      ],
-      randomize_order: true
-    },
-    {
-      timeline: [wordTrial('practice5', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg')],
-      timeline_variables: [
-        ...WORDS_POS.map(w => ({stim: w, side: 'left'})),
-        ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
-      ],
-      randomize_order: true
-    }
-  ],
-  randomize_order: true,
-  repetitions: 1
+  timeline: createAlternatingTrials(
+    shuffledP6Imgs.slice(0, 4).map(x => x.img),
+    shuffledP6Words.slice(0, 4).map(x => x.w),
+    shuffledP6Imgs[0].side, shuffledP6Words[0].side,
+    'practice5', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg', false
+  )
 });
 
-// BLOCK 7: CRITICAL Incompatible
+// BLOCK 7: CRITICAL Incompatible - STRICT ALTERNATION
+const incomp7Imgs = [...IMG_MODI, ...IMG_MODI].map(img => ({img, side: 'right'}))
+  .concat([...IMG_MANMOHAN, ...IMG_MANMOHAN].map(img => ({img, side: 'left'})));
+const incomp7Words = [...WORDS_POS, ...WORDS_POS].map(w => ({w, side: 'left'}))
+  .concat([...WORDS_NEG, ...WORDS_NEG].map(w => ({w, side: 'right'})));
+
+const shuffledI7Imgs = incomp7Imgs.sort(() => Math.random() - 0.5);
+const shuffledI7Words = incomp7Words.sort(() => Math.random() - 0.5);
+
 timeline.push({
-  timeline: [
-    {
-      timeline: [imgTrial('incompatible', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg', true)],
-      timeline_variables: [
-        ...IMG_MODI.map(img => ({stim: img, side: 'right'})),
-        ...IMG_MANMOHAN.map(img => ({stim: img, side: 'left'}))
-      ],
-      randomize_order: true,
-      repetitions: 2
-    },
-    {
-      timeline: [wordTrial('incompatible', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg', true)],
-      timeline_variables: [
-        ...WORDS_POS.map(w => ({stim: w, side: 'left'})),
-        ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
-      ],
-      randomize_order: true,
-      repetitions: 2
-    }
-  ],
-  randomize_order: true
+  timeline: createAlternatingTrials(
+    shuffledI7Imgs.map(x => x.img),
+    shuffledI7Words.map(x => x.w),
+    shuffledI7Imgs[0].side, shuffledI7Words[0].side,
+    'incompatible', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg', true
+  )
 });
 
 // POST-TEST INTRO
