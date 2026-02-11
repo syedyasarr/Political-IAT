@@ -483,7 +483,7 @@
       font-size: clamp(44px, 7.5vh, 68px) !important;
       font-weight: 700 !important;
       color: var(--primary) !important;
-      margin: 2vh auto !important;
+      margin: 3vh auto !important;
       text-align: center !important;
       padding: 2vh 3vw !important;
       font-family: 'DM Serif Display', serif !important;
@@ -491,15 +491,15 @@
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      min-height: 20vh !important;
-      max-height: 35vh !important;
+      min-height: 25vh !important;
+      max-height: 40vh !important;
       overflow: visible !important;
     }
     
     /* CRITICAL IMAGE SIZE FIX - Constrain images to fit within viewport */
     .jspsych-iat-stim img {
-      max-width: min(400px, 50vw) !important;
-      max-height: min(250px, 30vh) !important;
+      max-width: min(500px, 60vw) !important;
+      max-height: min(320px, 36vh) !important;
       width: auto !important;
       height: auto !important;
       object-fit: contain !important;
@@ -510,75 +510,42 @@
       border: 2px solid var(--border) !important;
     }
     
-    /* ERROR FEEDBACK - MAXIMALLY VISIBLE */
+    /* ERROR FEEDBACK - VISIBLE ONLY WHEN TRIGGERED */
     .error-mark {
       color: var(--error-red) !important;
-      font-size: clamp(120px, 20vh, 180px) !important;
+      font-size: clamp(100px, 18vh, 160px) !important;
       font-weight: 900 !important;
       display: block !important;
-      margin: 0 auto !important;
+      margin: 5vh auto !important;
       text-align: center !important;
       line-height: 1 !important;
       text-shadow: 0 8px 20px rgba(231, 76, 60, 0.5) !important;
-      animation: errorPulse 0.5s ease-out !important;
-      width: 100% !important;
-      height: auto !important;
-      position: fixed !important;
-      top: 50% !important;
-      left: 50% !important;
-      transform: translate(-50%, -50%) !important;
-      z-index: 999999 !important;
-      background: rgba(255, 255, 255, 0.95) !important;
+      animation: errorPulse 0.4s ease-out !important;
       padding: 40px !important;
-      border-radius: 20px !important;
-      box-shadow: 0 10px 40px rgba(231, 76, 60, 0.3) !important;
     }
     
-    /* Force visibility for jsPsych's feedback container */
-    .jspsych-iat-feedback {
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
+    /* jsPsych's feedback container - styled but only visible when content exists */
+    #jspsych-iat-html-stim-feedback:not(:empty),
+    #jspsych-iat-image-stim-feedback:not(:empty) {
       color: #e74c3c !important;
-      font-size: 140px !important;
+      font-size: clamp(100px, 18vh, 160px) !important;
       font-weight: 900 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
       text-align: center !important;
-      margin: 0 !important;
-      line-height: 1 !important;
-      position: fixed !important;
-      top: 50% !important;
-      left: 50% !important;
-      transform: translate(-50%, -50%) !important;
-      z-index: 999999 !important;
+      margin: 5vh auto !important;
+      padding: 40px !important;
       background: rgba(255, 255, 255, 0.95) !important;
-      padding: 60px !important;
       border-radius: 20px !important;
       box-shadow: 0 10px 40px rgba(231, 76, 60, 0.4) !important;
-    }
-    
-    /* Override any jsPsych defaults that might hide the error */
-    #jspsych-iat-html-stim-feedback,
-    #jspsych-iat-image-stim-feedback {
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      color: #e74c3c !important;
-      font-size: 140px !important;
-      font-weight: 900 !important;
-      position: fixed !important;
-      top: 50% !important;
-      left: 50% !important;
-      transform: translate(-50%, -50%) !important;
-      z-index: 999999 !important;
-      background: rgba(255, 255, 255, 0.95) !important;
-      padding: 60px !important;
-      border-radius: 20px !important;
+      animation: errorPulse 0.4s ease-out !important;
     }
     
     @keyframes errorPulse {
-      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
-      50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      0% { transform: scale(0.8); opacity: 0; }
+      50% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
     }
     
     .jspsych-iat-category {
@@ -683,33 +650,6 @@
     
     .content-card::-webkit-scrollbar-thumb:hover {
       background: var(--primary-light);
-    }
-    
-    /* FINAL CRITICAL OVERRIDE FOR ERROR DISPLAY */
-    /* This MUST be at the end to override jsPsych defaults */
-    span.error-mark,
-    .jspsych-iat-feedback,
-    #jspsych-iat-html-stim-feedback,
-    #jspsych-iat-image-stim-feedback {
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      color: #e74c3c !important;
-      background-color: rgba(255, 255, 255, 0.98) !important;
-      font-size: 160px !important;
-      font-weight: 900 !important;
-      text-align: center !important;
-      margin: 0 !important;
-      padding: 80px 60px !important;
-      line-height: 1 !important;
-      z-index: 9999999 !important;
-      position: fixed !important;
-      top: 50% !important;
-      left: 50% !important;
-      transform: translate(-50%, -50%) !important;
-      border-radius: 24px !important;
-      box-shadow: 0 20px 60px rgba(231, 76, 60, 0.4), 0 0 0 4px #e74c3c !important;
-      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
     }
   </style>
 </head>
