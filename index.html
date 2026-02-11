@@ -483,28 +483,30 @@
       font-size: clamp(44px, 7.5vh, 68px) !important;
       font-weight: 700 !important;
       color: var(--primary) !important;
-      margin: 5vh auto !important;
+      margin: 3vh auto !important;
       text-align: center !important;
-      padding: 0 3vw !important;
+      padding: 2vh 3vw !important;
       font-family: 'DM Serif Display', serif !important;
       letter-spacing: -0.02em !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      min-height: 30vh !important;
+      min-height: 25vh !important;
+      max-height: 30vh !important;
+      overflow: visible !important;
     }
     
     .jspsych-iat-stim img {
-      max-width: min(35vw, 450px) !important;
-      max-height: 28vh !important;
+      max-width: 300px !important;
+      max-height: 200px !important;
       width: auto !important;
       height: auto !important;
       object-fit: contain !important;
-      border-radius: 12px;
+      border-radius: 8px;
       display: block !important;
       margin: 0 auto !important;
-      box-shadow: 0 8px 32px var(--shadow-lg);
-      border: 3px solid var(--border);
+      box-shadow: 0 4px 16px var(--shadow-lg);
+      border: 2px solid var(--border);
     }
     
     /* ERROR FEEDBACK - MUCH MORE VISIBLE */
@@ -518,11 +520,39 @@
       line-height: 1 !important;
       text-shadow: 0 4px 12px rgba(231, 76, 60, 0.3) !important;
       animation: errorPulse 0.4s ease-out !important;
+      width: 100% !important;
+      height: auto !important;
+      position: relative !important;
+      z-index: 9999 !important;
+    }
+    
+    /* Force visibility for jsPsych's feedback container */
+    .jspsych-iat-feedback {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      color: #e74c3c !important;
+      font-size: 120px !important;
+      font-weight: 900 !important;
+      text-align: center !important;
+      margin: 8vh auto !important;
+      line-height: 1 !important;
+    }
+    
+    /* Override any jsPsych defaults that might hide the error */
+    #jspsych-iat-html-stim-feedback,
+    #jspsych-iat-image-stim-feedback {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      color: #e74c3c !important;
+      font-size: 120px !important;
+      font-weight: 900 !important;
     }
     
     @keyframes errorPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.15); opacity: 1; }
     }
     
     .jspsych-iat-category {
@@ -628,6 +658,27 @@
     .content-card::-webkit-scrollbar-thumb:hover {
       background: var(--primary-light);
     }
+    
+    /* FINAL CRITICAL OVERRIDE FOR ERROR DISPLAY */
+    /* This MUST be at the end to override jsPsych defaults */
+    span.error-mark,
+    .jspsych-iat-feedback,
+    #jspsych-iat-html-stim-feedback,
+    #jspsych-iat-image-stim-feedback {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      color: #e74c3c !important;
+      background-color: transparent !important;
+      font-size: 140px !important;
+      font-weight: 900 !important;
+      text-align: center !important;
+      margin: 60px auto !important;
+      padding: 20px !important;
+      line-height: 1 !important;
+      z-index: 99999 !important;
+      position: relative !important;
+    }
   </style>
 </head>
 
@@ -653,10 +704,8 @@ console.log('Participant:', PID);
 // ===========================================
 // STIMULI
 // ===========================================
-// NOTE: You need to add imagesmodi5.jpg.jpeg, imagesmodi6.jpg.jpeg, 
-// imagesprevious5.jpg.jpeg, and imagesprevious6.jpg.jpeg to your project
-const IMG_MODI = ['imagesmodi1.jpg.jpeg', 'imagesmodi2.jpg.jpeg', 'imagesmodi3.jpg.jpeg', 'imagesmodi4.jpg.jpeg', 'imagesmodi5.jpg.jpeg', 'imagesmodi6.jpg.jpeg'];
-const IMG_MANMOHAN = ['imagesprevious1.jpg.jpeg', 'imagesprevious2.jpg.jpeg', 'imagesprevious3.jpg.jpeg', 'imagesprevious4.jpg.jpeg', 'imagesprevious5.jpg.jpeg', 'imagesprevious6.jpg.jpeg'];
+const IMG_MODI = ['modi1.jpeg', 'modi2.jpeg', 'modi3.jpeg', 'modi4.jpeg', 'modi5.jpeg', 'modi6.jpeg'];
+const IMG_MANMOHAN = ['mohan1.jpeg', 'mohan2.jpeg', 'mohan3.jpeg', 'mohan4.jpeg', 'mohan5.jpeg', 'mohan6.jpeg'];
 const WORDS_POS = ['Triumph', 'Joyous', 'Celebrate', 'Cheerful', 'Beautiful', 'Terrific', 'Magnificent', 'Excellent'];
 const WORDS_NEG = ['Disgust', 'Annoy', 'Hate', 'Ugly', 'Awful', 'Bothersome', 'Hurtful', 'Negative'];
 
@@ -677,6 +726,7 @@ function createAlternatingTrials(imgArray, wordArray, imgSide, wordSide, block, 
       bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
       force_correct_key_press: true,
       display_feedback: true,
+      feedback_duration: 800,
       trial_duration: 3000,
       left_category_key: 'e',
       right_category_key: 'i',
@@ -686,6 +736,12 @@ function createAlternatingTrials(imgArray, wordArray, imgSide, wordSide, block, 
       data: {block: block, type: 'image', critical: isCritical || false, stimulus: imgArray[i]},
       on_load: function() {
         if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
+        console.log('IMAGE TRIAL LOADED - Error feedback should show if wrong key pressed');
+      },
+      on_finish: function(data) {
+        if (!data.correct) {
+          console.log('❌ INCORRECT RESPONSE - Red X should have appeared!');
+        }
       }
     });
     
@@ -698,6 +754,7 @@ function createAlternatingTrials(imgArray, wordArray, imgSide, wordSide, block, 
       bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
       force_correct_key_press: true,
       display_feedback: true,
+      feedback_duration: 800,
       trial_duration: 3000,
       left_category_key: 'e',
       right_category_key: 'i',
@@ -707,6 +764,12 @@ function createAlternatingTrials(imgArray, wordArray, imgSide, wordSide, block, 
       data: {block: block, type: 'word', critical: isCritical || false, stimulus: wordArray[i]},
       on_load: function() {
         if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
+        console.log('WORD TRIAL LOADED - Error feedback should show if wrong key pressed');
+      },
+      on_finish: function(data) {
+        if (!data.correct) {
+          console.log('❌ INCORRECT RESPONSE - Red X should have appeared!');
+        }
       }
     });
   }
@@ -1067,6 +1130,7 @@ function imgTrial(block, lCat, rCat, lShort, rShort, crit) {
     bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
     force_correct_key_press: true,
     display_feedback: true,
+    feedback_duration: 800,
     trial_duration: 3000,
     left_category_key: 'e',
     right_category_key: 'i',
@@ -1076,6 +1140,11 @@ function imgTrial(block, lCat, rCat, lShort, rShort, crit) {
     data: {block: block, type: 'image', critical: crit || false},
     on_load: function() {
       if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
+    },
+    on_finish: function(data) {
+      if (!data.correct) {
+        console.log('❌ IMAGE ERROR - Red X displayed');
+      }
     }
   };
 }
@@ -1089,6 +1158,7 @@ function wordTrial(block, lCat, rCat, lShort, rShort, crit) {
     bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
     force_correct_key_press: true,
     display_feedback: true,
+    feedback_duration: 800,
     trial_duration: 3000,
     left_category_key: 'e',
     right_category_key: 'i',
@@ -1098,6 +1168,11 @@ function wordTrial(block, lCat, rCat, lShort, rShort, crit) {
     data: {block: block, type: 'word', critical: crit || false},
     on_load: function() {
       if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
+    },
+    on_finish: function(data) {
+      if (!data.correct) {
+        console.log('❌ WORD ERROR - Red X displayed');
+      }
     }
   };
 }
