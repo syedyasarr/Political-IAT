@@ -510,42 +510,48 @@
       border: 2px solid var(--border) !important;
     }
     
-    /* ERROR FEEDBACK - VISIBLE ONLY WHEN TRIGGERED */
-    .error-mark {
-      color: var(--error-red) !important;
-      font-size: clamp(100px, 18vh, 160px) !important;
-      font-weight: 900 !important;
-      display: block !important;
-      margin: 5vh auto !important;
-      text-align: center !important;
-      line-height: 1 !important;
-      text-shadow: 0 8px 20px rgba(231, 76, 60, 0.5) !important;
-      animation: errorPulse 0.4s ease-out !important;
-      padding: 40px !important;
+    /* ENHANCED ERROR FEEDBACK - RED X */
+    #jspsych-iat-html-stim-feedback,
+    #jspsych-iat-image-stim-feedback {
+      position: fixed !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      z-index: 10000 !important;
+      pointer-events: none !important;
     }
     
-    /* jsPsych's feedback container - styled but only visible when content exists */
     #jspsych-iat-html-stim-feedback:not(:empty),
     #jspsych-iat-image-stim-feedback:not(:empty) {
-      color: #e74c3c !important;
-      font-size: clamp(100px, 18vh, 160px) !important;
+      color: var(--error-red) !important;
+      font-size: clamp(120px, 20vh, 180px) !important;
       font-weight: 900 !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
       text-align: center !important;
-      margin: 5vh auto !important;
-      padding: 40px !important;
-      background: rgba(255, 255, 255, 0.95) !important;
-      border-radius: 20px !important;
-      box-shadow: 0 10px 40px rgba(231, 76, 60, 0.4) !important;
-      animation: errorPulse 0.4s ease-out !important;
+      background: rgba(255, 255, 255, 0.98) !important;
+      border-radius: 24px !important;
+      padding: 60px 80px !important;
+      box-shadow: 0 20px 60px rgba(231, 76, 60, 0.5) !important;
+      animation: errorAppear 0.3s ease-out !important;
+      border: 6px solid var(--error-red) !important;
+      line-height: 1 !important;
     }
     
-    @keyframes errorPulse {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.1); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
+    @keyframes errorAppear {
+      0% { 
+        transform: translate(-50%, -50%) scale(0.5); 
+        opacity: 0; 
+      }
+      60% { 
+        transform: translate(-50%, -50%) scale(1.15); 
+        opacity: 1; 
+      }
+      100% { 
+        transform: translate(-50%, -50%) scale(1); 
+        opacity: 1; 
+      }
     }
     
     .jspsych-iat-category {
@@ -674,12 +680,14 @@ console.log('Mobile:', IS_MOBILE);
 console.log('Participant:', PID);
 
 // ===========================================
-// STIMULI
+// IMPROVED STIMULI - Better balanced words
 // ===========================================
 const IMG_MODI = ['modi1.jpeg', 'modi2.jpeg', 'modi3.jpeg', 'modi4.jpeg', 'modi5.jpeg', 'modi6.jpeg'];
 const IMG_MANMOHAN = ['mohan1.jpeg', 'mohan2.jpeg', 'mohan3.jpeg', 'mohan4.jpeg', 'mohan5.jpeg', 'mohan6.jpeg'];
-const WORDS_POS = ['Triumph', 'Joyous', 'Celebrate', 'Cheerful', 'Beautiful', 'Terrific', 'Magnificent', 'Excellent'];
-const WORDS_NEG = ['Disgust', 'Annoy', 'Hate', 'Ugly', 'Awful', 'Bothersome', 'Hurtful', 'Negative'];
+
+// IMPROVED: More balanced positive and negative evaluative words
+const WORDS_POS = ['Wonderful', 'Glorious', 'Pleasure', 'Joyful', 'Love', 'Peace', 'Happy', 'Brilliant'];
+const WORDS_NEG = ['Terrible', 'Horrible', 'Agony', 'Painful', 'Evil', 'Awful', 'Nasty', 'Failure'];
 
 // ===========================================
 // CRITICAL: ALTERNATING STIMULUS FUNCTION
@@ -694,12 +702,12 @@ function createAlternatingTrials(imgArray, wordArray, imgSide, wordSide, block, 
       type: jsPsychIatImage,
       stimulus: imgArray[i],
       stim_key_association: imgSide,
-      html_when_wrong: '<span class="error-mark">✕</span>',
+      html_when_wrong: '<span style="color: #e74c3c; font-size: 180px; font-weight: 900; line-height: 1;">✕</span>',
       bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
       force_correct_key_press: true,
       display_feedback: true,
-      feedback_duration: 1000,
-      trial_duration: 3000,
+      feedback_duration: 1200,
+      trial_duration: 5000,
       left_category_key: 'e',
       right_category_key: 'i',
       left_category_label: lCat.split('/'),
@@ -708,11 +716,13 @@ function createAlternatingTrials(imgArray, wordArray, imgSide, wordSide, block, 
       data: {block: block, type: 'image', critical: isCritical || false, stimulus: imgArray[i]},
       on_load: function() {
         if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
-        console.log('IMAGE TRIAL LOADED - Error feedback configured');
+        console.log('IMAGE TRIAL - Error feedback ready');
       },
       on_finish: function(data) {
         if (!data.correct) {
-          console.log('❌ INCORRECT RESPONSE - Red X should be displayed prominently!');
+          console.log('❌ INCORRECT IMAGE RESPONSE - Red X displayed');
+        } else {
+          console.log('✓ Correct image response');
         }
       }
     });
@@ -722,12 +732,12 @@ function createAlternatingTrials(imgArray, wordArray, imgSide, wordSide, block, 
       type: jsPsychIatHtml,
       stimulus: wordArray[i],
       stim_key_association: wordSide,
-      html_when_wrong: '<span class="error-mark">✕</span>',
+      html_when_wrong: '<span style="color: #e74c3c; font-size: 180px; font-weight: 900; line-height: 1;">✕</span>',
       bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
       force_correct_key_press: true,
       display_feedback: true,
-      feedback_duration: 1000,
-      trial_duration: 3000,
+      feedback_duration: 1200,
+      trial_duration: 5000,
       left_category_key: 'e',
       right_category_key: 'i',
       left_category_label: lCat.split('/'),
@@ -736,11 +746,13 @@ function createAlternatingTrials(imgArray, wordArray, imgSide, wordSide, block, 
       data: {block: block, type: 'word', critical: isCritical || false, stimulus: wordArray[i]},
       on_load: function() {
         if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
-        console.log('WORD TRIAL LOADED - Error feedback configured');
+        console.log('WORD TRIAL - Error feedback ready');
       },
       on_finish: function(data) {
         if (!data.correct) {
-          console.log('❌ INCORRECT RESPONSE - Red X should be displayed prominently!');
+          console.log('❌ INCORRECT WORD RESPONSE - Red X displayed');
+        } else {
+          console.log('✓ Correct word response');
         }
       }
     });
@@ -1098,12 +1110,12 @@ function imgTrial(block, lCat, rCat, lShort, rShort, crit) {
     type: jsPsychIatImage,
     stimulus: jsPsych.timelineVariable('stim'),
     stim_key_association: jsPsych.timelineVariable('side'),
-    html_when_wrong: '<span class="error-mark">✕</span>',
+    html_when_wrong: '<span style="color: #e74c3c; font-size: 180px; font-weight: 900; line-height: 1;">✕</span>',
     bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
     force_correct_key_press: true,
     display_feedback: true,
-    feedback_duration: 1000,
-    trial_duration: 3000,
+    feedback_duration: 1200,
+    trial_duration: 5000,
     left_category_key: 'e',
     right_category_key: 'i',
     left_category_label: lCat.split('/'),
@@ -1126,12 +1138,12 @@ function wordTrial(block, lCat, rCat, lShort, rShort, crit) {
     type: jsPsychIatHtml,
     stimulus: jsPsych.timelineVariable('stim'),
     stim_key_association: jsPsych.timelineVariable('side'),
-    html_when_wrong: '<span class="error-mark">✕</span>',
+    html_when_wrong: '<span style="color: #e74c3c; font-size: 180px; font-weight: 900; line-height: 1;">✕</span>',
     bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
     force_correct_key_press: true,
     display_feedback: true,
-    feedback_duration: 1000,
-    trial_duration: 3000,
+    feedback_duration: 1200,
+    trial_duration: 5000,
     left_category_key: 'e',
     right_category_key: 'i',
     left_category_label: lCat.split('/'),
@@ -1333,8 +1345,8 @@ timeline.push({
         <ul>
           <li>Photos of <strong>Narendra Modi</strong></li>
           <li>Photos of <strong>Dr. Manmohan Singh</strong></li>
-          <li><strong>Positive words</strong> like "Triumph," "Joyous," "Beautiful"</li>
-          <li><strong>Negative words</strong> like "Disgust," "Hate," "Ugly"</li>
+          <li><strong>Positive words</strong> like "Wonderful," "Glorious," "Love"</li>
+          <li><strong>Negative words</strong> like "Terrible," "Horrible," "Evil"</li>
         </ul>
         
         <div class="info-box">
