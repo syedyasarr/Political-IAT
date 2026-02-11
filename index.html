@@ -36,7 +36,7 @@
       --border: #e8e5de;
       --shadow: rgba(26, 71, 42, 0.08);
       --shadow-lg: rgba(26, 71, 42, 0.15);
-      --error-red: #dc3545;
+      --error-red: #e74c3c;
     }
     
     * {
@@ -478,7 +478,7 @@
       box-shadow: 0 6px 24px var(--shadow-lg) !important;
     }
     
-    /* TRIAL DISPLAY */
+    /* TRIAL DISPLAY - FIXED IMAGE SIZING */
     .jspsych-iat-stim {
       font-size: clamp(44px, 7.5vh, 68px) !important;
       font-weight: 700 !important;
@@ -496,6 +496,7 @@
       overflow: visible !important;
     }
     
+    /* CRITICAL IMAGE SIZE FIX - Constrain images to fit within viewport */
     .jspsych-iat-stim img {
       max-width: min(500px, 60vw) !important;
       max-height: min(320px, 36vh) !important;
@@ -509,38 +510,42 @@
       border: 2px solid var(--border) !important;
     }
     
-    /* CRITICAL: SMALL RED X ERROR FEEDBACK - BOTTOM OF SCREEN */
-    #error-feedback {
-      position: fixed;
-      bottom: 32vh;
-      left: 50%;
-      transform: translateX(-50%);
-      color: var(--error-red);
-      font-size: 48px;
-      font-weight: 900;
-      line-height: 1;
-      z-index: 10000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
-      text-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+    /* ERROR FEEDBACK - VISIBLE ONLY WHEN TRIGGERED */
+    .error-mark {
+      color: var(--error-red) !important;
+      font-size: clamp(100px, 18vh, 160px) !important;
+      font-weight: 900 !important;
+      display: block !important;
+      margin: 5vh auto !important;
+      text-align: center !important;
+      line-height: 1 !important;
+      text-shadow: 0 8px 20px rgba(231, 76, 60, 0.5) !important;
+      animation: errorPulse 0.4s ease-out !important;
+      padding: 40px !important;
     }
     
-    #error-feedback.show {
-      opacity: 1;
+    /* jsPsych's feedback container - styled but only visible when content exists */
+    #jspsych-iat-html-stim-feedback:not(:empty),
+    #jspsych-iat-image-stim-feedback:not(:empty) {
+      color: #e74c3c !important;
+      font-size: clamp(100px, 18vh, 160px) !important;
+      font-weight: 900 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      margin: 5vh auto !important;
+      padding: 40px !important;
+      background: rgba(255, 255, 255, 0.95) !important;
+      border-radius: 20px !important;
+      box-shadow: 0 10px 40px rgba(231, 76, 60, 0.4) !important;
+      animation: errorPulse 0.4s ease-out !important;
     }
     
-    @media screen and (orientation: landscape) {
-      #error-feedback {
-        bottom: 35vh;
-      }
-    }
-    
-    /* Hide jsPsych's built-in error feedback */
-    #jspsych-iat-html-stim-feedback,
-    #jspsych-iat-image-stim-feedback {
-      display: none !important;
-      visibility: hidden !important;
+    @keyframes errorPulse {
+      0% { transform: scale(0.8); opacity: 0; }
+      50% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
     }
     
     .jspsych-iat-category {
@@ -611,6 +616,23 @@
       color: var(--primary);
     }
     
+    /* Progress Indicator */
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      transition: width 0.5s ease;
+      border-radius: 3px;
+    }
+    
     /* Scrollbar */
     .content-card::-webkit-scrollbar {
       width: 8px;
@@ -635,7 +657,6 @@
 <body>
   <div id="experiment"></div>
   <div id="controls"></div>
-  <div id="error-feedback">✕</div>
 </body>
 
 <script>
@@ -647,62 +668,92 @@ const PID = 'P' + Date.now();
 let EXPERIMENT_DATA = null;
 let DEMOGRAPHIC_DATA = {};
 let POST_TEST_DATA = {};
-let errorFeedbackTimeout = null;
 
 console.log('=== IAT STARTED ===');
 console.log('Mobile:', IS_MOBILE);
 console.log('Participant:', PID);
 
 // ===========================================
-// IMPROVED STIMULI
+// STIMULI
 // ===========================================
 const IMG_MODI = ['modi1.jpeg', 'modi2.jpeg', 'modi3.jpeg', 'modi4.jpeg', 'modi5.jpeg', 'modi6.jpeg'];
 const IMG_MANMOHAN = ['mohan1.jpeg', 'mohan2.jpeg', 'mohan3.jpeg', 'mohan4.jpeg', 'mohan5.jpeg', 'mohan6.jpeg'];
-const WORDS_POS = ['Wonderful', 'Glorious', 'Pleasure', 'Joyful', 'Love', 'Peace', 'Happy', 'Brilliant'];
-const WORDS_NEG = ['Terrible', 'Horrible', 'Agony', 'Painful', 'Evil', 'Awful', 'Nasty', 'Failure'];
+const WORDS_POS = ['Triumph', 'Joyous', 'Celebrate', 'Cheerful', 'Beautiful', 'Terrific', 'Magnificent', 'Excellent'];
+const WORDS_NEG = ['Disgust', 'Annoy', 'Hate', 'Ugly', 'Awful', 'Bothersome', 'Hurtful', 'Negative'];
 
 // ===========================================
-// ERROR FEEDBACK DISPLAY
+// CRITICAL: ALTERNATING STIMULUS FUNCTION
 // ===========================================
-function showErrorFeedback() {
-  const errorEl = document.getElementById('error-feedback');
-  if (errorEl) {
-    errorEl.classList.add('show');
-    console.log('❌ ERROR FEEDBACK DISPLAYED');
+function createAlternatingTrials(imgArray, wordArray, imgSide, wordSide, block, lCat, rCat, lShort, rShort, isCritical) {
+  const trials = [];
+  const maxPairs = Math.min(imgArray.length, wordArray.length);
+  
+  for (let i = 0; i < maxPairs; i++) {
+    // Image trial
+    trials.push({
+      type: jsPsychIatImage,
+      stimulus: imgArray[i],
+      stim_key_association: imgSide,
+      html_when_wrong: '<span class="error-mark">✕</span>',
+      bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
+      force_correct_key_press: true,
+      display_feedback: true,
+      feedback_duration: 1000,
+      trial_duration: 3000,
+      left_category_key: 'e',
+      right_category_key: 'i',
+      left_category_label: lCat.split('/'),
+      right_category_label: rCat.split('/'),
+      response_ends_trial: true,
+      data: {block: block, type: 'image', critical: isCritical || false, stimulus: imgArray[i]},
+      on_load: function() {
+        if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
+        console.log('IMAGE TRIAL LOADED - Error feedback configured');
+      },
+      on_finish: function(data) {
+        if (!data.correct) {
+          console.log('❌ INCORRECT RESPONSE - Red X should be displayed prominently!');
+        }
+      }
+    });
     
-    if (errorFeedbackTimeout) {
-      clearTimeout(errorFeedbackTimeout);
-    }
-    
-    errorFeedbackTimeout = setTimeout(() => {
-      errorEl.classList.remove('show');
-    }, 800);
+    // Word trial
+    trials.push({
+      type: jsPsychIatHtml,
+      stimulus: wordArray[i],
+      stim_key_association: wordSide,
+      html_when_wrong: '<span class="error-mark">✕</span>',
+      bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
+      force_correct_key_press: true,
+      display_feedback: true,
+      feedback_duration: 1000,
+      trial_duration: 3000,
+      left_category_key: 'e',
+      right_category_key: 'i',
+      left_category_label: lCat.split('/'),
+      right_category_label: rCat.split('/'),
+      response_ends_trial: true,
+      data: {block: block, type: 'word', critical: isCritical || false, stimulus: wordArray[i]},
+      on_load: function() {
+        if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
+        console.log('WORD TRIAL LOADED - Error feedback configured');
+      },
+      on_finish: function(data) {
+        if (!data.correct) {
+          console.log('❌ INCORRECT RESPONSE - Red X should be displayed prominently!');
+        }
+      }
+    });
   }
+  
+  return trials;
 }
 
-function hideErrorFeedback() {
-  const errorEl = document.getElementById('error-feedback');
-  if (errorEl) {
-    errorEl.classList.remove('show');
-  }
-}
-
 // ===========================================
-// ROBUST KEY PRESS HANDLER
+// KEY PRESS FUNCTION
 // ===========================================
-let keyPressBlocked = false;
-
 window.doKeyPress = function(key) {
-  if (keyPressBlocked) {
-    console.log('⏸️ KEY PRESS BLOCKED (debouncing)');
-    return;
-  }
-  
   console.log('🔑 KEY PRESSED:', key);
-  
-  // Block rapid presses
-  keyPressBlocked = true;
-  setTimeout(() => { keyPressBlocked = false; }, 100);
   
   const codes = {
     'e': {key: 'e', code: 'KeyE', keyCode: 69},
@@ -711,48 +762,27 @@ window.doKeyPress = function(key) {
   };
   
   const info = codes[key];
-  if (!info) {
-    console.warn('Invalid key:', key);
-    return;
-  }
   
-  // Create and dispatch multiple event types for maximum compatibility
-  const keydownEvent = new KeyboardEvent('keydown', {
+  const down = new KeyboardEvent('keydown', {
     key: info.key,
     code: info.code,
     keyCode: info.keyCode,
     which: info.keyCode,
     bubbles: true,
-    cancelable: true,
-    view: window
+    cancelable: true
   });
   
-  const keypressEvent = new KeyboardEvent('keypress', {
+  const up = new KeyboardEvent('keyup', {
     key: info.key,
     code: info.code,
     keyCode: info.keyCode,
     which: info.keyCode,
     bubbles: true,
-    cancelable: true,
-    view: window
+    cancelable: true
   });
   
-  const keyupEvent = new KeyboardEvent('keyup', {
-    key: info.key,
-    code: info.code,
-    keyCode: info.keyCode,
-    which: info.keyCode,
-    bubbles: true,
-    cancelable: true,
-    view: window
-  });
-  
-  document.dispatchEvent(keydownEvent);
-  document.dispatchEvent(keypressEvent);
-  
-  setTimeout(() => {
-    document.dispatchEvent(keyupEvent);
-  }, 50);
+  document.dispatchEvent(down);
+  setTimeout(() => document.dispatchEvent(up), 50);
 }
 
 // ===========================================
@@ -792,7 +822,6 @@ window.hideControls = function() {
   console.log('🚫 HIDE CONTROLS');
   const ctrl = document.getElementById('controls');
   if (ctrl) ctrl.className = '';
-  hideErrorFeedback();
 }
 
 // ===========================================
@@ -1033,7 +1062,7 @@ function showResults() {
 }
 
 // ===========================================
-// TRIAL FUNCTIONS WITH ERROR FEEDBACK
+// TRIAL FUNCTIONS
 // ===========================================
 function blockIntro(title, left, right, reversed) {
   return {
@@ -1057,7 +1086,6 @@ function blockIntro(title, left, right, reversed) {
     choices: [' '],
     on_load: function() {
       if (IS_MOBILE) setupControls('single', 'START');
-      hideErrorFeedback();
     },
     on_finish: function() {
       hideControls();
@@ -1070,11 +1098,12 @@ function imgTrial(block, lCat, rCat, lShort, rShort, crit) {
     type: jsPsychIatImage,
     stimulus: jsPsych.timelineVariable('stim'),
     stim_key_association: jsPsych.timelineVariable('side'),
-    html_when_wrong: '',
+    html_when_wrong: '<span class="error-mark">✕</span>',
     bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
     force_correct_key_press: true,
-    display_feedback: false,
-    trial_duration: 5000,
+    display_feedback: true,
+    feedback_duration: 1000,
+    trial_duration: 3000,
     left_category_key: 'e',
     right_category_key: 'i',
     left_category_label: lCat.split('/'),
@@ -1083,12 +1112,10 @@ function imgTrial(block, lCat, rCat, lShort, rShort, crit) {
     data: {block: block, type: 'image', critical: crit || false},
     on_load: function() {
       if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
-      hideErrorFeedback();
     },
     on_finish: function(data) {
       if (!data.correct) {
-        showErrorFeedback();
-        console.log('❌ INCORRECT IMAGE - Error X shown');
+        console.log('❌ IMAGE ERROR - Red X displayed');
       }
     }
   };
@@ -1099,11 +1126,12 @@ function wordTrial(block, lCat, rCat, lShort, rShort, crit) {
     type: jsPsychIatHtml,
     stimulus: jsPsych.timelineVariable('stim'),
     stim_key_association: jsPsych.timelineVariable('side'),
-    html_when_wrong: '',
+    html_when_wrong: '<span class="error-mark">✕</span>',
     bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
     force_correct_key_press: true,
-    display_feedback: false,
-    trial_duration: 5000,
+    display_feedback: true,
+    feedback_duration: 1000,
+    trial_duration: 3000,
     left_category_key: 'e',
     right_category_key: 'i',
     left_category_label: lCat.split('/'),
@@ -1112,12 +1140,10 @@ function wordTrial(block, lCat, rCat, lShort, rShort, crit) {
     data: {block: block, type: 'word', critical: crit || false},
     on_load: function() {
       if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
-      hideErrorFeedback();
     },
     on_finish: function(data) {
       if (!data.correct) {
-        showErrorFeedback();
-        console.log('❌ INCORRECT WORD - Error X shown');
+        console.log('❌ WORD ERROR - Red X displayed');
       }
     }
   };
@@ -1170,7 +1196,7 @@ timeline.push({
   }
 });
 
-// DEMOGRAPHICS
+// DEMOGRAPHICS - EXPANDED
 timeline.push({
   type: jsPsychSurveyHtmlForm,
   preamble: `
@@ -1307,13 +1333,13 @@ timeline.push({
         <ul>
           <li>Photos of <strong>Narendra Modi</strong></li>
           <li>Photos of <strong>Dr. Manmohan Singh</strong></li>
-          <li><strong>Positive words</strong> like "Wonderful," "Glorious," "Love"</li>
-          <li><strong>Negative words</strong> like "Terrible," "Horrible," "Evil"</li>
+          <li><strong>Positive words</strong> like "Triumph," "Joyous," "Beautiful"</li>
+          <li><strong>Negative words</strong> like "Disgust," "Hate," "Ugly"</li>
         </ul>
         
         <div class="info-box">
           <strong>Your Task</strong><br>
-          Sort each item into the correct category using the <strong>E</strong> and <strong>I</strong> keys (or buttons on mobile).
+          Sort each item into the correct category using the <strong>E</strong> and <strong>I</strong> keys (or buttons on mobile). Items will alternate: photo, word, photo, word...
         </div>
         
         <div class="category-grid">
@@ -1324,7 +1350,7 @@ timeline.push({
         <div class="info-box warning">
           <strong>Important Guidelines</strong><br>
           • Respond as <strong>quickly</strong> as possible while staying accurate<br>
-          • If you make a mistake, a small red <strong>✕</strong> will appear at the bottom - press the correct key to continue<br>
+          • If you make a mistake, a large red <strong>✕</strong> will appear - simply press the correct key<br>
           • Categories will <strong>switch</strong> partway through - pay attention!<br>
           • There are no "right" or "wrong" answers - just respond based on your first instinct
         </div>
@@ -1365,40 +1391,47 @@ timeline.push({
     ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
   ],
   randomize_order: true,
-  repetitions: 2
-});
-
-// BLOCK 3: Combined Practice (Compatible)
-timeline.push(blockIntro('Practice: Combined Categories', 'Modi or Positive', 'Manmohan or Negative', false));
-timeline.push({
-  timeline: [
-    imgTrial('practice3', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg'),
-    wordTrial('practice3', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg')
-  ],
-  timeline_variables: [
-    ...IMG_MODI.map(img => ({stim: img, side: 'left'})),
-    ...IMG_MANMOHAN.map(img => ({stim: img, side: 'right'})),
-    ...WORDS_POS.map(w => ({stim: w, side: 'left'})),
-    ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
-  ],
-  randomize_order: true,
   repetitions: 1
 });
 
-// BLOCK 4: CRITICAL Compatible
+// BLOCK 3: Combined Practice (Compatible) - ALTERNATING
+timeline.push(blockIntro('Practice: Combined Categories', 'Modi or Positive', 'Manmohan or Negative', false));
+
+// Create alternating trials for practice
+const practice3Imgs = [...IMG_MODI, ...IMG_MODI].map(img => ({img, side: 'left'}))
+  .concat([...IMG_MANMOHAN, ...IMG_MANMOHAN].map(img => ({img, side: 'right'})));
+const practice3Words = [...WORDS_POS, ...WORDS_POS].map(w => ({w, side: 'left'}))
+  .concat([...WORDS_NEG, ...WORDS_NEG].map(w => ({w, side: 'right'})));
+
+// Shuffle
+const shuffledP3Imgs = practice3Imgs.sort(() => Math.random() - 0.5);
+const shuffledP3Words = practice3Words.sort(() => Math.random() - 0.5);
+
 timeline.push({
-  timeline: [
-    imgTrial('compatible', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg', true),
-    wordTrial('compatible', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg', true)
-  ],
-  timeline_variables: [
-    ...IMG_MODI.map(img => ({stim: img, side: 'left'})),
-    ...IMG_MANMOHAN.map(img => ({stim: img, side: 'right'})),
-    ...WORDS_POS.map(w => ({stim: w, side: 'left'})),
-    ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
-  ],
-  randomize_order: true,
-  repetitions: 2
+  timeline: createAlternatingTrials(
+    shuffledP3Imgs.slice(0, 4).map(x => x.img),
+    shuffledP3Words.slice(0, 4).map(x => x.w),
+    'left', 'left',
+    'practice3', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg', false
+  )
+});
+
+// BLOCK 4: CRITICAL Compatible - STRICT ALTERNATION
+const comp4Imgs = [...IMG_MODI, ...IMG_MODI].map(img => ({img, side: 'left'}))
+  .concat([...IMG_MANMOHAN, ...IMG_MANMOHAN].map(img => ({img, side: 'right'})));
+const comp4Words = [...WORDS_POS, ...WORDS_POS].map(w => ({w, side: 'left'}))
+  .concat([...WORDS_NEG, ...WORDS_NEG].map(w => ({w, side: 'right'})));
+
+const shuffledC4Imgs = comp4Imgs.sort(() => Math.random() - 0.5);
+const shuffledC4Words = comp4Words.sort(() => Math.random() - 0.5);
+
+timeline.push({
+  timeline: createAlternatingTrials(
+    shuffledC4Imgs.map(x => x.img),
+    shuffledC4Words.map(x => x.w),
+    shuffledC4Imgs[0].side, shuffledC4Words[0].side,
+    'compatible', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg', true
+  )
 });
 
 // BLOCK 5: Reversed Leaders (Practice)
@@ -1410,43 +1443,48 @@ timeline.push({
     ...IMG_MANMOHAN.map(img => ({stim: img, side: 'left'}))
   ],
   randomize_order: true,
-  repetitions: 4
+  repetitions: 5
 });
 
-// BLOCK 6: Combined Practice (Incompatible)
+// BLOCK 6: Combined Practice (Incompatible) - ALTERNATING
 timeline.push(blockIntro('Practice: Combined Categories', 'Manmohan or Positive', 'Modi or Negative', false));
+
+const practice6Imgs = [...IMG_MODI].map(img => ({img, side: 'right'}))
+  .concat([...IMG_MANMOHAN].map(img => ({img, side: 'left'})));
+const practice6Words = [...WORDS_POS].map(w => ({w, side: 'left'}))
+  .concat([...WORDS_NEG].map(w => ({w, side: 'right'})));
+
+const shuffledP6Imgs = practice6Imgs.sort(() => Math.random() - 0.5);
+const shuffledP6Words = practice6Words.sort(() => Math.random() - 0.5);
+
 timeline.push({
-  timeline: [
-    imgTrial('practice5', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg'),
-    wordTrial('practice5', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg')
-  ],
-  timeline_variables: [
-    ...IMG_MODI.map(img => ({stim: img, side: 'right'})),
-    ...IMG_MANMOHAN.map(img => ({stim: img, side: 'left'})),
-    ...WORDS_POS.map(w => ({stim: w, side: 'left'})),
-    ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
-  ],
-  randomize_order: true,
-  repetitions: 1
+  timeline: createAlternatingTrials(
+    shuffledP6Imgs.slice(0, 4).map(x => x.img),
+    shuffledP6Words.slice(0, 4).map(x => x.w),
+    shuffledP6Imgs[0].side, shuffledP6Words[0].side,
+    'practice5', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg', false
+  )
 });
 
-// BLOCK 7: CRITICAL Incompatible
+// BLOCK 7: CRITICAL Incompatible - STRICT ALTERNATION
+const incomp7Imgs = [...IMG_MODI, ...IMG_MODI].map(img => ({img, side: 'right'}))
+  .concat([...IMG_MANMOHAN, ...IMG_MANMOHAN].map(img => ({img, side: 'left'})));
+const incomp7Words = [...WORDS_POS, ...WORDS_POS].map(w => ({w, side: 'left'}))
+  .concat([...WORDS_NEG, ...WORDS_NEG].map(w => ({w, side: 'right'})));
+
+const shuffledI7Imgs = incomp7Imgs.sort(() => Math.random() - 0.5);
+const shuffledI7Words = incomp7Words.sort(() => Math.random() - 0.5);
+
 timeline.push({
-  timeline: [
-    imgTrial('incompatible', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg', true),
-    wordTrial('incompatible', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg', true)
-  ],
-  timeline_variables: [
-    ...IMG_MODI.map(img => ({stim: img, side: 'right'})),
-    ...IMG_MANMOHAN.map(img => ({stim: img, side: 'left'})),
-    ...WORDS_POS.map(w => ({stim: w, side: 'left'})),
-    ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
-  ],
-  randomize_order: true,
-  repetitions: 2
+  timeline: createAlternatingTrials(
+    shuffledI7Imgs.map(x => x.img),
+    shuffledI7Words.map(x => x.w),
+    shuffledI7Imgs[0].side, shuffledI7Words[0].side,
+    'incompatible', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg', true
+  )
 });
 
-// POST-TEST
+// POST-TEST INTRO
 timeline.push({
   type: jsPsychHtmlKeyboardResponse,
   stimulus: `
