@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Political Attitudes Study - IAT</title>
+
+  <!-- jsPsych -->
+  <script src="https://unpkg.com/jspsych@7.3.4"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-iat-image@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-iat-html@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@1.0.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-multi-choice@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-likert@1.1.3"></script>
+  <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" />
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FileSaver -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  
+  <style>
+    :root {
+      --primary: #1a472a;
+      --primary-light: #2d5f3f;
+      --accent: #d4af37;
+      --accent-light: #f4d98f;
+      --bg-cream: #faf8f3;
+      --bg-white: #ffffff;
+      --text-dark: #2d3436;
+      --text-medium: #636e72;
+      --text-light: #95a5a6;
+      --border: #e8e5de;
+      --shadow: rgba(26, 71, 42, 0.08);
+      --shadow-lg: rgba(26, 71, 42, 0.15);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--bg-cream);
+      font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-dark);
+      overflow: hidden;
+      position: fixed;
+      font-weight: 400;
+    }
+    
+    /* Typography */
+    h1, h2, h3 {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-weight: 400;
+      line-height: 1.2;
+      color: var(--primary);
+    }
+    
+    h1 {
+      font-size: clamp(28px, 5vh, 42px);
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    
+    h2 {
+      font-size: clamp(22px, 3.5vh, 32px);
+      margin-bottom: 12px;
+      color: var(--primary-light);
+    }
+    
+    h3 {
+      font-size: clamp(18px, 2.8vh, 24px);
+      margin-bottom: 10px;
+    }
+    
+    p, li {
+      font-size: clamp(15px, 2.2vh, 18px);
+      line-height: 1.6;
+      color: var(--text-medium);
+      margin-bottom: 12px;
+    }
+    
+    strong {
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    
+    /* FORCE LANDSCAPE */
+    @media screen and (orientation: portrait) {
+      body::before {
+        content: "↻";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 80px;
+        z-index: 999999;
+        flex-direction: column;
+      }
+      
+      body::after {
+        content: "Please rotate your device to landscape mode";
+        position: fixed;
+        top: 60%;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        color: white;
+        font-size: 18px;
+        font-family: 'Public Sans', sans-serif;
+        z-index: 999999;
+      }
+      
+      #experiment, #controls {
+        display: none !important;
+      }
+    }
+    
+    @media screen and (orientation: landscape) {
+      body {
+        padding-bottom: 28vh;
+      }
+    }
+    
+    /* Main Container */
+    .page-container {
+      max-width: min(900px, 90vw);
+      margin: 0 auto;
+      padding: clamp(20px, 4vh, 40px) clamp(20px, 4vw, 40px);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+    }
+    
+    .content-card {
+      background: var(--bg-white);
+      border-radius: 16px;
+      padding: clamp(24px, 4vh, 48px) clamp(24px, 4vw, 48px);
+      box-shadow: 0 2px 12px var(--shadow), 0 8px 40px var(--shadow-lg);
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      border: 1px solid var(--border);
+      animation: fadeSlideUp 0.5s ease-out;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Ensure jsPsych content is scrollable */
+    .jspsych-content-wrapper {
+      overflow-y: auto !important;
+      max-height: 85vh !important;
+    }
+    
+    .jspsych-content {
+      overflow: visible !important;
+    }
+    
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* Header Accent */
+    .header-accent {
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      margin-bottom: 20px;
+      border-radius: 2px;
+    }
+    
+    /* Info Boxes */
+    .info-box {
+      background: linear-gradient(135deg, rgba(26, 71, 42, 0.04), rgba(26, 71, 42, 0.08));
+      border-left: 4px solid var(--primary);
+      padding: clamp(16px, 2.5vh, 24px);
+      margin: 20px 0;
+      border-radius: 8px;
+      font-size: clamp(14px, 2vh, 17px);
+    }
+    
+    .info-box.warning {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(212, 175, 55, 0.12));
+      border-left-color: var(--accent);
+    }
+    
+    .info-box.success {
+      background: linear-gradient(135deg, rgba(39, 174, 96, 0.08), rgba(39, 174, 96, 0.12));
+      border-left-color: #27ae60;
+    }
+    
+    /* Category Pills */
+    .category-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(12px, 2vw, 20px);
+      margin: 24px 0;
+    }
+    
+    .category-pill {
+      background: var(--primary);
+      color: white;
+      padding: clamp(16px, 2.5vh, 24px) clamp(12px, 2vw, 20px);
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 600;
+      font-size: clamp(16px, 2.5vh, 20px);
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 12px var(--shadow-lg);
+      transition: transform 0.2s ease;
+    }
+    
+    .category-pill:hover {
+      transform: translateY(-2px);
+    }
+    
+    /* Buttons */
+    .primary-btn {
+      width: 100%;
+      padding: clamp(14px, 2.5vh, 20px) clamp(20px, 3vw, 32px);
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: clamp(16px, 2.5vh, 19px);
+      font-weight: 600;
+      font-family: 'Public Sans', sans-serif;
+      cursor: pointer;
+      margin: 12px 0;
+      box-shadow: 0 4px 16px var(--shadow-lg);
+      transition: all 0.3s ease;
+      letter-spacing: 0.02em;
+    }
+    
+    .primary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px var(--shadow-lg);
+    }
+    
+    .primary-btn:active {
+      transform: translateY(0);
+    }
+    
+    .secondary-btn {
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      color: var(--primary);
+    }
+    
+    /* List Styling */
+    ul {
+      margin: 16px 0 16px 24px;
+      list-style: none;
+    }
+    
+    ul li {
+      position: relative;
+      padding-left: 20px;
+      margin-bottom: 8px;
+    }
+    
+    ul li::before {
+      content: "●";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: 12px;
+    }
+    
+    /* MOBILE CONTROLS */
+    #controls {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 28vh;
+      background: linear-gradient(to top, var(--primary) 0%, var(--primary-light) 100%);
+      display: none;
+      gap: clamp(12px, 2vw, 24px);
+      padding: clamp(16px, 2.5vh, 24px) clamp(16px, 3vw, 32px);
+      z-index: 999999;
+      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
+      border-top: 2px solid var(--accent);
+    }
+    
+    #controls.active {
+      display: flex !important;
+    }
+    
+    .control-btn {
+      flex: 1;
+      background: var(--bg-white);
+      color: var(--primary);
+      border: 3px solid var(--accent);
+      border-radius: 16px;
+      font-size: clamp(36px, 6vh, 48px);
+      font-weight: 900;
+      font-family: 'DM Serif Display', serif;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 8px 0 var(--accent), 0 12px 32px rgba(0, 0, 0, 0.3);
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+    
+    .control-btn:active {
+      transform: translateY(8px);
+      box-shadow: 0 0 0 var(--accent), 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+    
+    .control-btn.single {
+      border-color: var(--accent-light);
+      box-shadow: 0 8px 0 var(--accent-light), 0 12px 32px rgba(0, 0, 0, 0.3);
+    }
+    
+    .control-btn.single:active {
+      box-shadow: 0 0 0 var(--accent-light), 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+    
+    .key-text {
+      font-size: clamp(48px, 8vh, 64px);
+      margin-bottom: 8px;
+    }
+    
+    .key-label {
+      font-size: clamp(14px, 2.2vh, 18px);
+      opacity: 0.8;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      font-family: 'Public Sans', sans-serif;
+    }
+    
+    /* SURVEY STYLES */
+    .jspsych-survey-multi-choice-question,
+    .jspsych-survey-likert-question,
+    .jspsych-content {
+      user-select: text !important;
+      -webkit-user-select: text !important;
+    }
+    
+    /* Fix survey scrolling */
+    #jspsych-survey-html-form-form,
+    .jspsych-survey-multi-choice-preamble,
+    .jspsych-survey-likert-preamble {
+      overflow: visible !important;
+      max-height: none !important;
+    }
+    
+    .jspsych-display-element {
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      max-height: 85vh !important;
+      padding: clamp(20px, 3vh, 40px) clamp(20px, 3vw, 40px) !important;
+    }
+    
+    .form-section {
+      background: var(--bg-cream);
+      padding: clamp(20px, 3vh, 28px);
+      margin: 20px 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 12px;
+      font-weight: 600;
+      font-size: clamp(15px, 2.3vh, 18px);
+      color: var(--primary);
+      font-family: 'Public Sans', sans-serif;
+    }
+    
+    .form-sublabel {
+      display: block;
+      margin-bottom: 16px;
+      font-size: clamp(13px, 2vh, 16px);
+      color: var(--text-medium);
+      font-weight: 400;
+    }
+    
+    input[type="radio"],
+    input[type="checkbox"] {
+      width: 20px !important;
+      height: 20px !important;
+      margin-right: 12px !important;
+      cursor: pointer !important;
+      accent-color: var(--primary);
+    }
+    
+    label {
+      cursor: pointer !important;
+      user-select: none !important;
+      -webkit-user-select: none !important;
+      display: flex !important;
+      align-items: center !important;
+      padding: 10px !important;
+      margin: 6px 0 !important;
+      border-radius: 8px !important;
+      transition: background 0.2s ease !important;
+      font-size: clamp(14px, 2.1vh, 17px) !important;
+    }
+    
+    label:hover {
+      background: rgba(26, 71, 42, 0.04) !important;
+    }
+    
+    input[type="text"],
+    input[type="number"],
+    select {
+      font-size: clamp(15px, 2.2vh, 18px) !important;
+      padding: 12px 16px !important;
+      border: 2px solid var(--border) !important;
+      border-radius: 8px !important;
+      width: 100% !important;
+      max-width: 300px !important;
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      font-family: 'Public Sans', sans-serif !important;
+      transition: border-color 0.2s ease !important;
+    }
+    
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus {
+      outline: none !important;
+      border-color: var(--primary) !important;
+    }
+    
+    #jspsych-survey-html-form-next,
+    #jspsych-survey-multi-choice-next,
+    #jspsych-survey-likert-next {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light)) !important;
+      color: white !important;
+      border: none !important;
+      padding: 16px 32px !important;
+      font-size: clamp(16px, 2.5vh, 19px) !important;
+      font-weight: 600 !important;
+      border-radius: 12px !important;
+      cursor: pointer !important;
+      margin-top: 32px !important;
+      font-family: 'Public Sans', sans-serif !important;
+      box-shadow: 0 4px 16px var(--shadow-lg) !important;
+      transition: all 0.3s ease !important;
+    }
+    
+    #jspsych-survey-html-form-next:hover,
+    #jspsych-survey-multi-choice-next:hover,
+    #jspsych-survey-likert-next:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 6px 24px var(--shadow-lg) !important;
+    }
+    
+    /* TRIAL DISPLAY */
+    .jspsych-iat-stim {
+      font-size: clamp(44px, 7.5vh, 68px) !important;
+      font-weight: 700 !important;
+      color: var(--primary) !important;
+      margin: 5vh auto !important;
+      text-align: center !important;
+      padding: 0 3vw !important;
+      font-family: 'DM Serif Display', serif !important;
+      letter-spacing: -0.02em !important;
+    }
+    
+    .jspsych-iat-stim img {
+      max-width: 50vw !important;
+      max-height: 40vh !important;
+      border-radius: 12px;
+      display: block !important;
+      margin: 0 auto !important;
+      box-shadow: 0 8px 32px var(--shadow-lg);
+      border: 3px solid var(--border);
+    }
+    
+    .error-mark {
+      color: #e74c3c !important;
+      font-size: clamp(72px, 14vh, 120px) !important;
+      font-weight: 900 !important;
+      display: block !important;
+      margin: 4vh auto !important;
+      text-align: center !important;
+      line-height: 1 !important;
+    }
+    
+    .jspsych-iat-category {
+      font-weight: 700 !important;
+      font-size: clamp(18px, 2.8vh, 22px) !important;
+      padding: 14px 24px !important;
+      border: 3px solid var(--primary) !important;
+      border-radius: 10px !important;
+      margin: 12px !important;
+      background: var(--bg-white) !important;
+      font-family: 'Public Sans', sans-serif !important;
+    }
+    
+    .jspsych-display-element > p {
+      font-size: clamp(18px, 3vh, 24px) !important;
+      color: var(--bg-cream) !important;
+      background: rgba(26, 71, 42, 0.9) !important;
+      margin-top: 3vh !important;
+      padding: 20px 24px 30vh !important;
+      text-align: center !important;
+      font-weight: 600 !important;
+      font-family: 'Public Sans', sans-serif !important;
+    }
+    
+    /* Results */
+    .result-grid {
+      display: grid;
+      gap: 12px;
+      margin: 24px 0;
+      background: var(--bg-cream);
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    
+    .result-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: clamp(14px, 2.1vh, 17px);
+    }
+    
+    .result-item:last-child {
+      border-bottom: none;
+    }
+    
+    .result-label {
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    
+    .result-value {
+      color: var(--text-medium);
+      text-align: right;
+    }
+    
+    .result-highlight {
+      background: var(--bg-white);
+      padding: 20px;
+      border-radius: 10px;
+      margin: 16px 0;
+      border: 2px solid var(--accent);
+      text-align: center;
+      font-size: clamp(16px, 2.5vh, 20px);
+      font-weight: 600;
+      color: var(--primary);
+    }
+    
+    /* Progress Indicator */
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      transition: width 0.5s ease;
+      border-radius: 3px;
+    }
+    
+    /* Scrollbar */
+    .content-card::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .content-card::-webkit-scrollbar-track {
+      background: var(--bg-cream);
+      border-radius: 4px;
+    }
+    
+    .content-card::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 4px;
+    }
+    
+    .content-card::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-light);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="experiment"></div>
+  <div id="controls"></div>
+</body>
+
+<script>
+// ===========================================
+// GLOBAL VARIABLES
+// ===========================================
+const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
+const PID = 'P' + Date.now();
+let EXPERIMENT_DATA = null;
+let DEMOGRAPHIC_DATA = {};
+let POST_TEST_DATA = {};
+
+console.log('=== IAT STARTED ===');
+console.log('Mobile:', IS_MOBILE);
+console.log('Participant:', PID);
+
+// ===========================================
+// STIMULI
+// ===========================================
+const IMG_MODI = ['imagesmodi1.jpg.jpeg', 'imagesmodi2.jpg.jpeg', 'imagesmodi3.jpg.jpeg', 'imagesmodi4.jpg.jpeg'];
+const IMG_MANMOHAN = ['imagesprevious1.jpg.jpeg', 'imagesprevious2.jpg.jpeg', 'imagesprevious3.jpg.jpeg', 'imagesprevious4.jpg.jpeg'];
+const WORDS_POS = ['Lovely', 'Joyous', 'Pleasing', 'Glorious', 'Delightful', 'Beautiful', 'Enjoy', 'Spectacular'];
+const WORDS_NEG = ['Pain', 'Yucky', 'Failure', 'Disgust', 'Humiliate', 'Tragic', 'Rotten', 'Annoy'];
+
+// ===========================================
+// KEY PRESS FUNCTION
+// ===========================================
+window.doKeyPress = function(key) {
+  console.log('🔑 KEY PRESSED:', key);
+  
+  const codes = {
+    'e': {key: 'e', code: 'KeyE', keyCode: 69},
+    'i': {key: 'i', code: 'KeyI', keyCode: 73},
+    ' ': {key: ' ', code: 'Space', keyCode: 32}
+  };
+  
+  const info = codes[key];
+  
+  const down = new KeyboardEvent('keydown', {
+    key: info.key,
+    code: info.code,
+    keyCode: info.keyCode,
+    which: info.keyCode,
+    bubbles: true,
+    cancelable: true
+  });
+  
+  const up = new KeyboardEvent('keyup', {
+    key: info.key,
+    code: info.code,
+    keyCode: info.keyCode,
+    which: info.keyCode,
+    bubbles: true,
+    cancelable: true
+  });
+  
+  document.dispatchEvent(down);
+  setTimeout(() => document.dispatchEvent(up), 50);
+}
+
+// ===========================================
+// CONTROL SETUP
+// ===========================================
+window.setupControls = function(mode, labels) {
+  console.log('🎮 SETUP CONTROLS:', mode, labels);
+  
+  if (!IS_MOBILE) return;
+  
+  const ctrl = document.getElementById('controls');
+  ctrl.innerHTML = '';
+  ctrl.className = 'active';
+  
+  if (mode === 'single') {
+    ctrl.innerHTML = `
+      <button class="control-btn single" onclick="doKeyPress(' ')">
+        <div class="key-text">TAP</div>
+        <div class="key-label">${labels}</div>
+      </button>
+    `;
+  } else {
+    ctrl.innerHTML = `
+      <button class="control-btn" onclick="doKeyPress('e')">
+        <div class="key-text">E</div>
+        <div class="key-label">${labels.e}</div>
+      </button>
+      <button class="control-btn" onclick="doKeyPress('i')">
+        <div class="key-text">I</div>
+        <div class="key-label">${labels.i}</div>
+      </button>
+    `;
+  }
+}
+
+window.hideControls = function() {
+  console.log('🚫 HIDE CONTROLS');
+  const ctrl = document.getElementById('controls');
+  if (ctrl) ctrl.className = '';
+}
+
+// ===========================================
+// DOWNLOAD FUNCTIONS
+// ===========================================
+window.downloadCSV = function() {
+  if (!EXPERIMENT_DATA) {
+    alert('No data available!');
+    return;
+  }
+  const blob = new Blob([EXPERIMENT_DATA.fullCSV], {type: 'text/csv;charset=utf-8'});
+  saveAs(blob, `IAT_FullData_${PID}.csv`);
+  alert('✅ Full data CSV downloaded!');
+}
+
+window.downloadSummary = function() {
+  if (!EXPERIMENT_DATA) {
+    alert('No data available!');
+    return;
+  }
+  const blob = new Blob([EXPERIMENT_DATA.summaryCSV], {type: 'text/csv;charset=utf-8'});
+  saveAs(blob, `IAT_Summary_${PID}.csv`);
+  alert('✅ Summary CSV downloaded!');
+}
+
+window.downloadBoth = function() {
+  downloadSummary();
+  setTimeout(() => downloadCSV(), 500);
+}
+
+// ===========================================
+// JSPSYCH
+// ===========================================
+const jsPsych = initJsPsych({
+  display_element: 'experiment',
+  
+  on_finish: function() {
+    hideControls();
+    console.log('📊 PROCESSING DATA');
+    processAndDisplayResults();
+  },
+  
+  on_data_update: function(data) {
+    data.participant_id = PID;
+    data.device = IS_MOBILE ? 'mobile' : 'desktop';
+    data.timestamp = new Date().toISOString();
+  }
+});
+
+function processAndDisplayResults() {
+  const allData = jsPsych.data.get();
+  
+  // Get demographic data
+  const demoTrial = allData.filter({trial_type: 'survey-html-form'}).values()[0];
+  if (demoTrial && demoTrial.response) {
+    DEMOGRAPHIC_DATA = demoTrial.response;
+  }
+  
+  // Get post-test data
+  const postTestTrials = allData.filter({phase: 'post_test'}).values();
+  postTestTrials.forEach(trial => {
+    if (trial.response) {
+      Object.assign(POST_TEST_DATA, trial.response);
+    }
+  });
+  
+  // Get IAT data
+  const iatData = allData.filter([
+    {trial_type: 'iat-image'},
+    {trial_type: 'iat-html'}
+  ]);
+  
+  const compatible = iatData.filter({block: 'compatible', critical: true});
+  const incompatible = iatData.filter({block: 'incompatible', critical: true});
+  
+  const meanComp = compatible.select('rt').mean();
+  const meanIncomp = incompatible.select('rt').mean();
+  const sdComp = compatible.select('rt').sd();
+  const sdIncomp = incompatible.select('rt').sd();
+  const pooledSD = Math.sqrt((sdComp * sdComp + sdIncomp * sdIncomp) / 2);
+  const dScore = (meanIncomp - meanComp) / pooledSD;
+  
+  const correct = iatData.filter({correct: true}).count();
+  const total = iatData.count();
+  const accuracy = ((correct / total) * 100).toFixed(1);
+  const meanRT = iatData.select('rt').mean().toFixed(0);
+  
+  let interpretation = '';
+  let explanation = '';
+  
+  if (Math.abs(dScore) < 0.15) {
+    interpretation = 'No clear preference';
+    explanation = 'Response times were similar for both pairings.';
+  } else if (dScore > 0.65) {
+    interpretation = 'Strong Modi-Positive association';
+    explanation = 'Much faster when Modi paired with positive words.';
+  } else if (dScore > 0.35) {
+    interpretation = 'Moderate Modi-Positive association';
+    explanation = 'Noticeably faster when Modi paired with positive words.';
+  } else if (dScore > 0) {
+    interpretation = 'Slight Modi-Positive association';
+    explanation = 'Somewhat faster when Modi paired with positive words.';
+  } else if (dScore < -0.65) {
+    interpretation = 'Strong Manmohan-Positive association';
+    explanation = 'Much faster when Manmohan paired with positive words.';
+  } else if (dScore < -0.35) {
+    interpretation = 'Moderate Manmohan-Positive association';
+    explanation = 'Noticeably faster when Manmohan paired with positive words.';
+  } else {
+    interpretation = 'Slight Manmohan-Positive association';
+    explanation = 'Somewhat faster when Manmohan paired with positive words.';
+  }
+  
+  // Create comprehensive summary CSV
+  const summaryCSV = createSummaryCSV(PID, dScore, interpretation, accuracy, meanRT, total, meanComp, meanIncomp);
+  
+  // Create full trial-by-trial CSV with demographics
+  const fullCSV = createFullCSV(iatData);
+  
+  EXPERIMENT_DATA = {
+    id: PID,
+    date: new Date().toLocaleString(),
+    device: IS_MOBILE ? 'Mobile' : 'Desktop',
+    trials: total,
+    accuracy: accuracy + '%',
+    rt: meanRT + 'ms',
+    dscore: dScore.toFixed(3),
+    result: interpretation,
+    explanation: explanation,
+    summaryCSV: summaryCSV,
+    fullCSV: fullCSV
+  };
+  
+  console.log('✅ DATA READY');
+  showResults();
+}
+
+function createSummaryCSV(pid, dscore, interp, acc, rt, trials, rtComp, rtIncomp) {
+  let csv = 'participant_id,date_time,device,age,gender,religion,caste,education,occupation,income,';
+  csv += 'political_orientation,state,rural_urban,language,media_consumption,';
+  csv += 'd_score,interpretation,accuracy_percent,mean_rt_ms,total_trials,rt_compatible_ms,rt_incompatible_ms,';
+  csv += 'preference_modi,preference_manmohan,awareness_bias,thermometer_modi,thermometer_manmohan,voted_2024\n';
+  
+  csv += `"${pid}","${new Date().toISOString()}","${IS_MOBILE ? 'Mobile' : 'Desktop'}",`;
+  csv += `"${DEMOGRAPHIC_DATA.age || 'NA'}","${DEMOGRAPHIC_DATA.gender || 'NA'}","${DEMOGRAPHIC_DATA.religion || 'NA'}",`;
+  csv += `"${DEMOGRAPHIC_DATA.caste || 'NA'}","${DEMOGRAPHIC_DATA.education || 'NA'}","${DEMOGRAPHIC_DATA.occupation || 'NA'}",`;
+  csv += `"${DEMOGRAPHIC_DATA.income || 'NA'}","${DEMOGRAPHIC_DATA.political || 'NA'}","${DEMOGRAPHIC_DATA.state || 'NA'}",`;
+  csv += `"${DEMOGRAPHIC_DATA.location || 'NA'}","${DEMOGRAPHIC_DATA.language || 'NA'}","${DEMOGRAPHIC_DATA.media || 'NA'}",`;
+  csv += `${dscore.toFixed(3)},"${interp}",${acc},${rt},${trials},${rtComp.toFixed(0)},${rtIncomp.toFixed(0)},`;
+  csv += `"${POST_TEST_DATA.preference_modi || 'NA'}","${POST_TEST_DATA.preference_manmohan || 'NA'}",`;
+  csv += `"${POST_TEST_DATA.awareness || 'NA'}","${POST_TEST_DATA.thermo_modi || 'NA'}","${POST_TEST_DATA.thermo_manmohan || 'NA'}",`;
+  csv += `"${POST_TEST_DATA.voted || 'NA'}"\n`;
+  
+  return csv;
+}
+
+function createFullCSV(iatData) {
+  let csv = 'participant_id,trial_number,block,stimulus_type,stimulus,correct_response,user_response,correct,rt_ms,';
+  csv += 'age,gender,religion,caste,education,occupation,income,political_orientation,state,rural_urban,language,media_consumption,timestamp\n';
+  
+  const trials = iatData.values();
+  trials.forEach((trial, idx) => {
+    csv += `"${PID}",${idx + 1},"${trial.block}","${trial.type}","${trial.stimulus}",`;
+    csv += `"${trial.stim_key_association}","${trial.response}",${trial.correct ? 'TRUE' : 'FALSE'},${trial.rt},`;
+    csv += `"${DEMOGRAPHIC_DATA.age || 'NA'}","${DEMOGRAPHIC_DATA.gender || 'NA'}","${DEMOGRAPHIC_DATA.religion || 'NA'}",`;
+    csv += `"${DEMOGRAPHIC_DATA.caste || 'NA'}","${DEMOGRAPHIC_DATA.education || 'NA'}","${DEMOGRAPHIC_DATA.occupation || 'NA'}",`;
+    csv += `"${DEMOGRAPHIC_DATA.income || 'NA'}","${DEMOGRAPHIC_DATA.political || 'NA'}","${DEMOGRAPHIC_DATA.state || 'NA'}",`;
+    csv += `"${DEMOGRAPHIC_DATA.location || 'NA'}","${DEMOGRAPHIC_DATA.language || 'NA'}","${DEMOGRAPHIC_DATA.media || 'NA'}","${trial.timestamp}"\n`;
+  });
+  
+  return csv;
+}
+
+function showResults() {
+  document.getElementById('experiment').innerHTML = `
+    <div class="page-container">
+      <div class="content-card">
+        <div class="header-accent"></div>
+        <h1>Experiment Complete</h1>
+        <p style="font-size: clamp(16px, 2.4vh, 19px); color: var(--text-medium);">Thank you for participating in this research study. Your contribution is valuable to understanding political attitudes.</p>
+        
+        <div class="info-box success">
+          <strong>✓ Data Processed Successfully</strong><br>
+          Your responses have been compiled and are ready for download.
+        </div>
+        
+        <div class="result-grid">
+          <div class="result-item">
+            <span class="result-label">Participant ID</span>
+            <span class="result-value">${EXPERIMENT_DATA.id}</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Completion Time</span>
+            <span class="result-value">${EXPERIMENT_DATA.date}</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Device Type</span>
+            <span class="result-value">${EXPERIMENT_DATA.device}</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Total Trials</span>
+            <span class="result-value">${EXPERIMENT_DATA.trials}</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Accuracy</span>
+            <span class="result-value">${EXPERIMENT_DATA.accuracy}</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Average Response Time</span>
+            <span class="result-value">${EXPERIMENT_DATA.rt}</span>
+          </div>
+        </div>
+        
+        <div class="result-highlight">
+          <div style="margin-bottom: 8px; font-size: clamp(14px, 2.1vh, 17px); opacity: 0.8;">D-Score</div>
+          <div style="font-size: clamp(24px, 4vh, 32px); font-family: 'DM Serif Display', serif;">${EXPERIMENT_DATA.dscore}</div>
+          <div style="margin-top: 8px; font-size: clamp(15px, 2.3vh, 18px);">${EXPERIMENT_DATA.result}</div>
+          <div style="margin-top: 12px; font-size: clamp(14px, 2.1vh, 16px); font-weight: 400; opacity: 0.8;">${EXPERIMENT_DATA.explanation}</div>
+        </div>
+        
+        <div class="info-box">
+          <strong>📊 Two Data Files Available</strong><br>
+          <strong>Summary CSV:</strong> One comprehensive row with all results and demographics<br>
+          <strong>Full CSV:</strong> Detailed trial-by-trial data with complete information
+        </div>
+        
+        <div class="info-box warning">
+          <strong>⚠ Important: Please Download Your Data</strong><br>
+          Download both files and send them to the researcher. Your data is stored locally and will be lost when you close this page.
+        </div>
+        
+        <button class="primary-btn secondary-btn" onclick="downloadBoth()">📥 Download Both Files</button>
+        <button class="primary-btn" onclick="downloadSummary()">Download Summary CSV Only</button>
+        <button class="primary-btn" onclick="downloadCSV()">Download Full Data CSV Only</button>
+      </div>
+    </div>
+  `;
+}
+
+// ===========================================
+// TRIAL FUNCTIONS
+// ===========================================
+function blockIntro(title, left, right, reversed) {
+  return {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: `
+      <div class="page-container">
+        <div class="content-card">
+          <div class="header-accent"></div>
+          <h2>${title}</h2>
+          ${reversed ? '<div class="info-box warning"><strong>⚠ Categories Switched</strong><br>Pay attention to the new category positions!</div>' : ''}
+          <div class="category-grid">
+            <div class="category-pill">E = ${left}</div>
+            <div class="category-pill">I = ${right}</div>
+          </div>
+          <p style="text-align: center; font-size: clamp(16px, 2.5vh, 19px); color: var(--text-dark); margin-top: 32px;">
+            ${IS_MOBILE ? '<strong>Tap START below to begin ↓</strong>' : '<strong>Press SPACE to begin</strong>'}
+          </p>
+        </div>
+      </div>
+    `,
+    choices: [' '],
+    on_load: function() {
+      if (IS_MOBILE) setupControls('single', 'START');
+    },
+    on_finish: function() {
+      hideControls();
+    }
+  };
+}
+
+function imgTrial(block, lCat, rCat, lShort, rShort, crit) {
+  return {
+    type: jsPsychIatImage,
+    stimulus: jsPsych.timelineVariable('stim'),
+    stim_key_association: jsPsych.timelineVariable('side'),
+    html_when_wrong: '<span class="error-mark">✕</span>',
+    bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
+    force_correct_key_press: true,
+    display_feedback: true,
+    trial_duration: 3000,
+    left_category_key: 'e',
+    right_category_key: 'i',
+    left_category_label: lCat.split('/'),
+    right_category_label: rCat.split('/'),
+    response_ends_trial: true,
+    data: {block: block, type: 'image', critical: crit || false},
+    on_load: function() {
+      if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
+    }
+  };
+}
+
+function wordTrial(block, lCat, rCat, lShort, rShort, crit) {
+  return {
+    type: jsPsychIatHtml,
+    stimulus: jsPsych.timelineVariable('stim'),
+    stim_key_association: jsPsych.timelineVariable('side'),
+    html_when_wrong: '<span class="error-mark">✕</span>',
+    bottom_instructions: `<p>E = ${lCat} | I = ${rCat}</p>`,
+    force_correct_key_press: true,
+    display_feedback: true,
+    trial_duration: 3000,
+    left_category_key: 'e',
+    right_category_key: 'i',
+    left_category_label: lCat.split('/'),
+    right_category_label: rCat.split('/'),
+    response_ends_trial: true,
+    data: {block: block, type: 'word', critical: crit || false},
+    on_load: function() {
+      if (IS_MOBILE) setupControls('double', {e: lShort, i: rShort});
+    }
+  };
+}
+
+// ===========================================
+// TIMELINE
+// ===========================================
+const timeline = [];
+
+// WELCOME
+timeline.push({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: `
+    <div class="page-container">
+      <div class="content-card">
+        <div class="header-accent"></div>
+        <h1>Political Attitudes Study</h1>
+        <h2 style="margin-bottom: 24px;">Implicit Association Test</h2>
+        
+        <div class="info-box">
+          <strong>Research Purpose</strong><br>
+          This study examines automatic associations between political figures and positive/negative concepts. Your participation helps us understand implicit attitudes in Indian politics.
+        </div>
+        
+        <h3>What You'll Do</h3>
+        <ul>
+          <li><strong>Part 1:</strong> Answer demographic questions (10 questions)</li>
+          <li><strong>Part 2:</strong> Complete categorization tasks with images and words</li>
+          <li><strong>Part 3:</strong> Answer follow-up questions about your attitudes</li>
+        </ul>
+        
+        <div class="info-box warning">
+          <strong>Time Required:</strong> Approximately 12-15 minutes<br>
+          <strong>Confidentiality:</strong> All responses are anonymous and stored locally<br>
+          ${IS_MOBILE ? '<strong>Device:</strong> Please keep your device in landscape orientation' : '<strong>Requirements:</strong> Use keyboard for responses (E, I, and Space keys)'}
+        </div>
+        
+        <p style="text-align: center; font-size: clamp(17px, 2.6vh, 20px); color: var(--primary); margin-top: 40px; font-weight: 600;">
+          ${IS_MOBILE ? 'Tap CONTINUE below to begin ↓' : 'Press any key to begin'}
+        </p>
+      </div>
+    </div>
+  `,
+  on_load: function() {
+    if (IS_MOBILE) setupControls('single', 'CONTINUE');
+  },
+  on_finish: function() {
+    hideControls();
+  }
+});
+
+// DEMOGRAPHICS - EXPANDED
+timeline.push({
+  type: jsPsychSurveyHtmlForm,
+  preamble: `
+    <div class="header-accent"></div>
+    <h1>Part 1: Background Information</h1>
+    <p style="font-size: clamp(15px, 2.2vh, 18px); color: var(--text-medium); margin-bottom: 24px;">Please provide some information about yourself. All responses are confidential and used only for research purposes.</p>
+  `,
+  html: `
+    <div class="form-section">
+      <label class="form-label">1. What is your age?</label>
+      <input type="number" name="age" min="18" max="100" required>
+    </div>
+    
+    <div class="form-section">
+      <label class="form-label">2. What is your gender?</label>
+      <label><input type="radio" name="gender" value="Male" required> Male</label>
+      <label><input type="radio" name="gender" value="Female" required> Female</label>
+      <label><input type="radio" name="gender" value="Non-binary" required> Non-binary</label>
+      <label><input type="radio" name="gender" value="Other" required> Other</label>
+      <label><input type="radio" name="gender" value="Prefer not to say" required> Prefer not to say</label>
+    </div>
+    
+    <div class="form-section">
+      <label class="form-label">3. What is your religion?</label>
+      <label><input type="radio" name="religion" value="Hindu" required> Hindu</label>
+      <label><input type="radio" name="religion" value="Muslim" required> Muslim</label>
+      <label><input type="radio" name="religion" value="Christian" required> Christian</label>
+      <label><input type="radio" name="religion" value="Sikh" required> Sikh</label>
+      <label><input type="radio" name="religion" value="Buddhist" required> Buddhist</label>
+      <label><input type="radio" name="religion" value="Jain" required> Jain</label>
+      <label><input type="radio" name="religion" value="Other" required> Other</label>
+      <label><input type="radio" name="religion" value="No religion" required> No religion</label>
+      <label><input type="radio" name="religion" value="Prefer not to say" required> Prefer not to say</label>
+    </div>
+    
+    <div class="form-section">
+      <label class="form-label">4. What is your caste category?</label>
+      <span class="form-sublabel">This information helps understand social diversity in attitudes</span>
+      <label><input type="radio" name="caste" value="General" required> General</label>
+      <label><input type="radio" name="caste" value="OBC" required> OBC (Other Backward Classes)</label>
+      <label><input type="radio" name="caste" value="SC" required> SC (Scheduled Caste)</label>
+      <label><input type="radio" name="caste" value="ST" required> ST (Scheduled Tribe)</label>
+      <label><input type="radio" name="caste" value="Prefer not to say" required> Prefer not to say</label>
+    </div>
+    
+    <div class="form-section">
+      <label class="form-label">5. What is your highest level of education?</label>
+      <label><input type="radio" name="education" value="Less than high school" required> Less than high school</label>
+      <label><input type="radio" name="education" value="High school graduate" required> High school graduate (10th or 12th)</label>
+      <label><input type="radio" name="education" value="Some college/Diploma" required> Some college or Diploma</label>
+      <label><input type="radio" name="education" value="Bachelor's degree" required> Bachelor's degree</label>
+      <label><input type="radio" name="education" value="Master's degree" required> Master's degree</label>
+      <label><input type="radio" name="education" value="Doctoral degree" required> Doctoral degree (PhD, MD, etc.)</label>
+    </div>
+    
+    <div class="form-section">
+      <label class="form-label">6. What is your primary occupation?</label>
+      <label><input type="radio" name="occupation" value="Student" required> Student</label>
+      <label><input type="radio" name="occupation" value="Government employee" required> Government employee</label>
+      <label><input type="radio" name="occupation" value="Private sector employee" required> Private sector employee</label>
+      <label><input type="radio" name="occupation" value="Self-employed/Business" required> Self-employed/Business owner</label>
+      <label><input type="radio" name="occupation" value="Homemaker" required> Homemaker</label>
+      <label><input type="radio" name="occupation" value="Retired" required> Retired</label>
+      <label><input type="radio" name="occupation" value="Unemployed" required> Unemployed</label>
+      <label><input type="radio" name="occupation" value="Other" required> Other</label>
+    </div>
+    
+    <div class="form-section">
+      <label class="form-label">7. What is your approximate monthly household income?</label>
+      <span class="form-sublabel">In Indian Rupees (₹)</span>
+      <label><input type="radio" name="income" value="Below 25,000" required> Below ₹25,000</label>
+      <label><input type="radio" name="income" value="25,000 - 50,000" required> ₹25,000 - ₹50,000</label>
+      <label><input type="radio" name="income" value="50,000 - 1,00,000" required> ₹50,000 - ₹1,00,000</label>
+      <label><input type="radio" name="income" value="1,00,000 - 2,00,000" required> ₹1,00,000 - ₹2,00,000</label>
+      <label><input type="radio" name="income" value="Above 2,00,000" required> Above ₹2,00,000</label>
+      <label><input type="radio" name="income" value="Prefer not to say" required> Prefer not to say</label>
+    </div>
+    
+    <div class="form-section">
+      <label class="form-label">8. How would you describe your political orientation?</label>
+      <label><input type="radio" name="political" value="Very liberal/Left-wing" required> Very liberal/Left-wing</label>
+      <label><input type="radio" name="political" value="Liberal/Center-left" required> Liberal/Center-left</label>
+      <label><input type="radio" name="political" value="Moderate/Centrist" required> Moderate/Centrist</label>
+      <label><input type="radio" name="political" value="Conservative/Center-right" required> Conservative/Center-right</label>
+      <label><input type="radio" name="political" value="Very conservative/Right-wing" required> Very conservative/Right-wing</label>
+      <label><input type="radio" name="political" value="No clear political leaning" required> No clear political leaning</label>
+    </div>
+    
+    <div class="form-section">
+      <label class="form-label">9. Which state or union territory do you currently reside in?</label>
+      <input type="text" name="state" required placeholder="e.g., Maharashtra, Delhi, Karnataka">
+    </div>
+    
+    <div class="form-section">
+      <label class="form-label">10. Where do you live?</label>
+      <label><input type="radio" name="location" value="Rural area" required> Rural area</label>
+      <label><input type="radio" name="location" value="Small town" required> Small town</label>
+      <label><input type="radio" name="location" value="City" required> City</label>
+      <label><input type="radio" name="location" value="Metro/Large city" required> Metro/Large city</label>
+    </div>
+    
+    <div class="form-section">
+      <label class="form-label">11. What is your primary language?</label>
+      <span class="form-sublabel">The language you use most often at home</span>
+      <input type="text" name="language" required placeholder="e.g., Hindi, Tamil, Bengali, English">
+    </div>
+    
+    <div class="form-section">
+      <label class="form-label">12. How often do you follow political news?</label>
+      <label><input type="radio" name="media" value="Daily" required> Daily</label>
+      <label><input type="radio" name="media" value="Several times a week" required> Several times a week</label>
+      <label><input type="radio" name="media" value="Once a week" required> Once a week</label>
+      <label><input type="radio" name="media" value="Rarely" required> Rarely</label>
+      <label><input type="radio" name="media" value="Never" required> Never</label>
+    </div>
+  `,
+  button_label: 'Continue to Task',
+  on_load: function() {
+    hideControls();
+  }
+});
+
+// IAT INSTRUCTIONS
+timeline.push({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: `
+    <div class="page-container">
+      <div class="content-card">
+        <div class="header-accent"></div>
+        <h1>Part 2: Categorization Task</h1>
+        
+        <p style="font-size: clamp(15px, 2.2vh, 18px); margin-bottom: 24px;">In this task, you will categorize items as quickly as possible. You will see:</p>
+        
+        <ul>
+          <li>Photos of <strong>Narendra Modi</strong></li>
+          <li>Photos of <strong>Dr. Manmohan Singh</strong></li>
+          <li><strong>Positive words</strong> like "Lovely," "Joyous," "Beautiful"</li>
+          <li><strong>Negative words</strong> like "Pain," "Tragic," "Disgust"</li>
+        </ul>
+        
+        <div class="info-box">
+          <strong>Your Task</strong><br>
+          Sort each item into the correct category using the <strong>E</strong> and <strong>I</strong> keys (or buttons on mobile).
+        </div>
+        
+        <div class="category-grid">
+          <div class="category-pill">E = Left Category</div>
+          <div class="category-pill">I = Right Category</div>
+        </div>
+        
+        <div class="info-box warning">
+          <strong>Important Guidelines</strong><br>
+          • Respond as <strong>quickly</strong> as possible while staying accurate<br>
+          • If you make a mistake, an <strong>✕</strong> will appear - simply press the correct key<br>
+          • Categories will <strong>switch</strong> partway through - pay attention!<br>
+          • There are no "right" or "wrong" answers - just respond based on your first instinct
+        </div>
+        
+        <p style="text-align: center; font-size: clamp(17px, 2.6vh, 20px); color: var(--primary); margin-top: 40px; font-weight: 600;">
+          ${IS_MOBILE ? 'Tap START below when ready ↓' : 'Press SPACE when ready to begin'}
+        </p>
+      </div>
+    </div>
+  `,
+  choices: [' '],
+  on_load: function() {
+    if (IS_MOBILE) setupControls('single', 'START');
+  },
+  on_finish: function() {
+    hideControls();
+  }
+});
+
+// BLOCK 1: Modi vs Manmohan
+timeline.push(blockIntro('Practice: Categorize Political Leaders', 'Modi', 'Manmohan', false));
+timeline.push({
+  timeline: [imgTrial('practice1', 'Modi', 'Manmohan', 'Modi', 'Manmohan')],
+  timeline_variables: [
+    ...IMG_MODI.map(img => ({stim: img, side: 'left'})),
+    ...IMG_MANMOHAN.map(img => ({stim: img, side: 'right'}))
+  ],
+  randomize_order: true,
+  repetitions: 2
+});
+
+// BLOCK 2: Positive vs Negative
+timeline.push(blockIntro('Practice: Categorize Words', 'Positive', 'Negative', false));
+timeline.push({
+  timeline: [wordTrial('practice2', 'Positive', 'Negative', 'Positive', 'Negative')],
+  timeline_variables: [
+    ...WORDS_POS.map(w => ({stim: w, side: 'left'})),
+    ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
+  ],
+  randomize_order: true,
+  repetitions: 1
+});
+
+// BLOCK 3: Combined Practice (Compatible)
+timeline.push(blockIntro('Practice: Combined Categories', 'Modi or Positive', 'Manmohan or Negative', false));
+timeline.push({
+  timeline: [
+    {
+      timeline: [imgTrial('practice3', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg')],
+      timeline_variables: [
+        ...IMG_MODI.map(img => ({stim: img, side: 'left'})),
+        ...IMG_MANMOHAN.map(img => ({stim: img, side: 'right'}))
+      ],
+      randomize_order: true
+    },
+    {
+      timeline: [wordTrial('practice3', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg')],
+      timeline_variables: [
+        ...WORDS_POS.map(w => ({stim: w, side: 'left'})),
+        ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
+      ],
+      randomize_order: true
+    }
+  ],
+  randomize_order: true,
+  repetitions: 1
+});
+
+// BLOCK 4: CRITICAL Compatible
+timeline.push({
+  timeline: [
+    {
+      timeline: [imgTrial('compatible', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg', true)],
+      timeline_variables: [
+        ...IMG_MODI.map(img => ({stim: img, side: 'left'})),
+        ...IMG_MANMOHAN.map(img => ({stim: img, side: 'right'}))
+      ],
+      randomize_order: true,
+      repetitions: 2
+    },
+    {
+      timeline: [wordTrial('compatible', 'Modi/Positive', 'Manmohan/Negative', 'Modi/Pos', 'Man/Neg', true)],
+      timeline_variables: [
+        ...WORDS_POS.map(w => ({stim: w, side: 'left'})),
+        ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
+      ],
+      randomize_order: true,
+      repetitions: 2
+    }
+  ],
+  randomize_order: true
+});
+
+// BLOCK 5: Reversed Leaders
+timeline.push(blockIntro('Practice: Categorize Political Leaders', 'Manmohan', 'Modi', true));
+timeline.push({
+  timeline: [imgTrial('practice4', 'Manmohan', 'Modi', 'Manmohan', 'Modi')],
+  timeline_variables: [
+    ...IMG_MODI.map(img => ({stim: img, side: 'right'})),
+    ...IMG_MANMOHAN.map(img => ({stim: img, side: 'left'}))
+  ],
+  randomize_order: true,
+  repetitions: 5
+});
+
+// BLOCK 6: Combined Practice (Incompatible)
+timeline.push(blockIntro('Practice: Combined Categories', 'Manmohan or Positive', 'Modi or Negative', false));
+timeline.push({
+  timeline: [
+    {
+      timeline: [imgTrial('practice5', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg')],
+      timeline_variables: [
+        ...IMG_MODI.map(img => ({stim: img, side: 'right'})),
+        ...IMG_MANMOHAN.map(img => ({stim: img, side: 'left'}))
+      ],
+      randomize_order: true
+    },
+    {
+      timeline: [wordTrial('practice5', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg')],
+      timeline_variables: [
+        ...WORDS_POS.map(w => ({stim: w, side: 'left'})),
+        ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
+      ],
+      randomize_order: true
+    }
+  ],
+  randomize_order: true,
+  repetitions: 1
+});
+
+// BLOCK 7: CRITICAL Incompatible
+timeline.push({
+  timeline: [
+    {
+      timeline: [imgTrial('incompatible', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg', true)],
+      timeline_variables: [
+        ...IMG_MODI.map(img => ({stim: img, side: 'right'})),
+        ...IMG_MANMOHAN.map(img => ({stim: img, side: 'left'}))
+      ],
+      randomize_order: true,
+      repetitions: 2
+    },
+    {
+      timeline: [wordTrial('incompatible', 'Manmohan/Positive', 'Modi/Negative', 'Man/Pos', 'Modi/Neg', true)],
+      timeline_variables: [
+        ...WORDS_POS.map(w => ({stim: w, side: 'left'})),
+        ...WORDS_NEG.map(w => ({stim: w, side: 'right'}))
+      ],
+      randomize_order: true,
+      repetitions: 2
+    }
+  ],
+  randomize_order: true
+});
+
+// POST-TEST INTRO
+timeline.push({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: `
+    <div class="page-container">
+      <div class="content-card">
+        <div class="header-accent"></div>
+        <h1>Part 3: Follow-Up Questions</h1>
+        <p style="font-size: clamp(16px, 2.4vh, 19px);">You're almost done! Just a few more questions about your attitudes and experiences.</p>
+        <p style="text-align: center; font-size: clamp(17px, 2.6vh, 20px); color: var(--primary); margin-top: 40px; font-weight: 600;">
+          ${IS_MOBILE ? 'Tap CONTINUE below ↓' : 'Press any key to continue'}
+        </p>
+      </div>
+    </div>
+  `,
+  on_load: function() {
+    if (IS_MOBILE) setupControls('single', 'CONTINUE');
+  },
+  on_finish: function() {
+    hideControls();
+  }
+});
+
+timeline.push({
+  type: jsPsychSurveyMultiChoice,
+  preamble: '<div class="header-accent"></div><h2>Explicit Preferences</h2>',
+  questions: [
+    {
+      prompt: "Which statement best describes your feelings toward Narendra Modi?",
+      name: 'preference_modi',
+      options: [
+        'I strongly prefer Modi over Manmohan Singh',
+        'I moderately prefer Modi over Manmohan Singh',
+        'I slightly prefer Modi over Manmohan Singh',
+        'I like Modi and Manmohan Singh equally',
+        'I slightly prefer Manmohan Singh over Modi',
+        'I moderately prefer Manmohan Singh over Modi',
+        'I strongly prefer Manmohan Singh over Modi'
+      ],
+      required: true
+    }
+  ],
+  data: {phase: 'post_test'},
+  on_load: function() {
+    hideControls();
+  }
+});
+
+timeline.push({
+  type: jsPsychSurveyMultiChoice,
+  preamble: '<div class="header-accent"></div>',
+  questions: [
+    {
+      prompt: "Which statement best describes your feelings toward Dr. Manmohan Singh?",
+      name: 'preference_manmohan',
+      options: [
+        'I strongly prefer Manmohan Singh over Modi',
+        'I moderately prefer Manmohan Singh over Modi',
+        'I slightly prefer Manmohan Singh over Modi',
+        'I like Manmohan Singh and Modi equally',
+        'I slightly prefer Modi over Manmohan Singh',
+        'I moderately prefer Modi over Manmohan Singh',
+        'I strongly prefer Modi over Manmohan Singh'
+      ],
+      required: true
+    }
+  ],
+  data: {phase: 'post_test'},
+  on_load: function() {
+    hideControls();
+  }
+});
+
+timeline.push({
+  type: jsPsychSurveyLikert,
+  preamble: '<div class="header-accent"></div><h2>Feeling Thermometer</h2><p style="margin-bottom: 20px;">Rate your feelings on a scale from 0 (very unfavorable) to 10 (very favorable)</p>',
+  questions: [
+    {
+      prompt: "How would you rate Narendra Modi?",
+      name: 'thermo_modi',
+      labels: ['0<br>Very<br>Unfavorable', '1', '2', '3', '4', '5<br>Neutral', '6', '7', '8', '9', '10<br>Very<br>Favorable'],
+      required: true
+    }
+  ],
+  data: {phase: 'post_test'},
+  on_load: function() {
+    hideControls();
+  }
+});
+
+timeline.push({
+  type: jsPsychSurveyLikert,
+  preamble: '<div class="header-accent"></div>',
+  questions: [
+    {
+      prompt: "How would you rate Dr. Manmohan Singh?",
+      name: 'thermo_manmohan',
+      labels: ['0<br>Very<br>Unfavorable', '1', '2', '3', '4', '5<br>Neutral', '6', '7', '8', '9', '10<br>Very<br>Favorable'],
+      required: true
+    }
+  ],
+  data: {phase: 'post_test'},
+  on_load: function() {
+    hideControls();
+  }
+});
+
+timeline.push({
+  type: jsPsychSurveyMultiChoice,
+  preamble: '<div class="header-accent"></div><h2>Self-Awareness</h2>',
+  questions: [
+    {
+      prompt: "Before participating in this study, how aware were you that you might have automatic preferences between these political figures?",
+      name: 'awareness',
+      options: [
+        'Very aware - I knew I had strong automatic preferences',
+        'Somewhat aware - I suspected I might have some preferences',
+        'A little aware - I had not thought about it much',
+        'Not at all aware - This is new to me'
+      ],
+      required: true
+    }
+  ],
+  data: {phase: 'post_test'},
+  on_load: function() {
+    hideControls();
+  }
+});
+
+timeline.push({
+  type: jsPsychSurveyMultiChoice,
+  preamble: '<div class="header-accent"></div>',
+  questions: [
+    {
+      prompt: "Did you vote in the 2024 Lok Sabha elections?",
+      name: 'voted',
+      options: [
+        'Yes, I voted',
+        'No, I did not vote',
+        'I was not eligible to vote',
+        'Prefer not to say'
+      ],
+      required: true
+    }
+  ],
+  data: {phase: 'post_test'},
+  on_load: function() {
+    hideControls();
+  }
+});
+
+timeline.push({
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: `
+    <div class="page-container">
+      <div class="content-card">
+        <div class="header-accent"></div>
+        <h1>Processing Your Results</h1>
+        <div style="text-align: center; padding: 40px 0;">
+          <div style="font-size: clamp(18px, 3vh, 24px); color: var(--text-medium); margin-bottom: 20px;">
+            Please wait a moment while we compile your data...
+          </div>
+          <div style="width: 60px; height: 60px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite;"></div>
+        </div>
+      </div>
+    </div>
+    <style>
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  `,
+  trial_duration: 2000,
+  response_ends_trial: false,
+  on_load: function() {
+    hideControls();
+  }
+});
+
+console.log('🚀 STARTING EXPERIMENT');
+jsPsych.run(timeline);
+</script>
+</html>
